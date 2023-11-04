@@ -1,0 +1,8 @@
+format: jb-book
+root: README
+
+parts:
+  - caption: "Finite elements and code generation"
+    chapters:
+    - file: "src/introduction.py"
+

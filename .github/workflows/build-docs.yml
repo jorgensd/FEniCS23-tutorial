@@ -1,0 +1,45 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: Deploy static content to Pages
+
+on:
+  pull_request:
+    # The CI is executed on every pull request to the main branch
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  # Directory that will be published on github pages
+  PUBLISH_DIR: ./_build/html
+  DEB_PYTHON_INSTALL_LAYOUT: deb_system
+
+jobs:
+  build-docs:
+    env: 
+      PYTHONPATH: /usr/local/lib/python3/dist-packages:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.10/dist-packages
+      DEB_PYTHON_INSTALL_LAYOUT: deb_system
+
+    runs-on: ubuntu-22.04
+    container: dolfinx/dolfinx:v0.6.0-r1
+    steps:
+      # This action sets the current path to the root of your github repo
+      - uses: actions/checkout@v4
+      
+      - name: Update pip
+        run: python3 -m pip install --upgrade pip setuptools
+
+      - name: Install dependencies
+        run: python3 -m pip install -e ".[dev]"
+
+      - name: Build docs
+        run: jupyter book build -W .
+
+      - name: Upload documentation as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: ${{ env.PUBLISH_DIR }}
+          if-no-files-found: error
