@@ -4,12 +4,11 @@
 # The power of this domain specific language is that it resembles mathematical
 # syntax.
 #
-# We will start with a standard problem, namely the Poisson problem:
+# We will start with a standard problem, namely a projection:
 # \begin{align}
-# -\nabla \cdot (k(x,y,z) \nabla u) &= f(x,y,z) \qquad \text{in } \Omega(x,y,z).
+# u &= \frac{f(x,y,z)}{g(x,y,z)} \qquad \text{in } \Omega(x,y,z).
 # \end{align}
-# where $\Omega$ is our computational domain, $k$ a spatially varying
-# coefficient and $f$ is a source term.
+# where $\Omega$ is our computational domain, $f$ and $g$ are two known functions
 #
 # ## Finite elements
 # To solve this problem, we have to choose an approporiate finite element space to represent the function $k$ and $u$.
@@ -101,37 +100,57 @@ domain = ufl.Mesh(c_el)
 # As oposed some commerical software, we do not rely on iso-parameteric elements in FEniCS.
 # We can use any supported finite element space to describe our unknown `u`.
 
-el = ufl.FiniteElement("Lagrange", domain.ufl_cell(), 2)
+el = ufl.FiniteElement("DQ", domain.ufl_cell(), 2)
 V = ufl.FunctionSpace(domain, el)
 
-# For the coefficient `k`, we choose the space of piecewise constant functions
+# For the coefficients `f` and `g`, we choose
 
-K = ufl.FunctionSpace(domain, ufl.FiniteElement("DG", domain.ufl_cell(), 0))
-k = ufl.Coefficient(K)
+F = ufl.FunctionSpace(domain, ufl.FiniteElement("DQ", domain.ufl_cell(), 0))
+f = ufl.Coefficient(F)
+G = ufl.FunctionSpace(domain, ufl.FiniteElement(
+    "Lagrange", domain.ufl_cell(), 1))
+g = ufl.Coefficient(F)
+
 
 # ## The variational form
-# We obtain it by multiplying with a test function and integrate by parts
+# We obtain them in the standard way, by multiplying by a test function
+# and integrating over the .domain
 
 u = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
-a = k * ufl.inner(ufl.grad(u), ufl.grad(v)) * ufl.dx
+a = ufl.inner(u, v) * ufl.dx
 
-# Note we have defined three different functions, the `TrialFunction`, `TestFunction` and a `Coefficient`.
-# These are all treated in different ways in UFL.
+# Note that the bi-linear form `a` is defined with trial and test functions.
 
-# Finally, we pick a source term `f` to be a spatially varying function
-
-x, y, z = ufl.SpatialCoordinate(domain)
-f = ufl.sin(2*ufl.pi*x)*ufl.cos(2*ufl.pi*y)
-L = f * v * ufl.dx
+L = (f / g) * v * ufl.dx
 
 # So far, so good?
 # As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx` or made a reference to the actual
-# computational domain we want to solve the problem on.
-# This is because this setup is common for all Poisson problems with a varying diffusive coefficient,
-# up to the point where we specifed a spatially varying source term.
-# If we want to keep this term general as well, we could place `f` in an appropiate finte element space.
+# computational domain we want to solve the problem on or what `f` or `g` is,
+# except for the choice of function spaces
+
 
 # # Code generation
-# All the code above is Python code symbolically describing the variational form of the Poisson problem.
-# The next step is to go from this representation into a discrete set of matrices, namely
+# All the code above is Python code symbolically describing the variational form of the projection.
+
+# To do so, we would define each of the functions as the linear
+# combinations of the basis functions
+# $u=\sum_{i=0}^{\mathcal{N}}u_i\phi_i(x)\qquad
+# v=\sum_{i=0}^{\mathcal{N}}v_i\phi_i(x)\qquad
+# f=\sum_{k=0}^{\mathcal{M}}f_k\psi_k(x)\qquad
+# g=\sum_{l=0}^{\mathcal{T}}g_l\varphi_l(x)$
+#
+# We next use the map $M_K:K_{ref}\mapsto K$
+# \begin{align}
+# \int_\Omega u v~\mathrm{d}x&= \sum_{K\in\mathcal{K}}\int_K u(x) v(x)~\mathrm{d}x\\
+# &= \sum_{K\in\mathcal{K}}\int_{M_K(K_{ref})} u(x)v(x)~\mathrm{d}x\\
+# &= \sum_{K\in\mathcal{K}}\int_{K_{ref}}u(M_K(\bar x))v(M_K(\bar x))\vert \mathrm{det} J_K(\bar x)\vert~\mathrm{d}\bar x
+# \end{align}
+# where $K$ is each element in the physical space, $J_K$ the Jacobian of the mapping.
+# Next, we can insert the expansion of $u$ into the formulation and identify the matrix system $Au=b$, where
+# \begin{align}
+# A_{j, i} &= \int_{K_{ref}} \phi_i(M_K(\bar x))\phi_j(M_K(\bar x))~\mathrm{d}\bar x\\
+# b_j &= \int_{K_{ref}} \frac{\Big(\sum_{k=0}^{\mathcal{M}}f_k\psi_i(M_K(\bar x))\Big)}
+# {\Big(\sum_{l=0}^{\mathcal{T}}g_k\varphi_i(M_K(\bar x))\Big)}\phi_j(M_K(\bar x))~\mathrm{d}\bar x
+# \end{align}
+# Next, one can choose an appropriate quadrature rule with points and weights
