@@ -149,8 +149,13 @@ L = (f / g) * v * ufl.dx
 # where $K$ is each element in the physical space, $J_K$ the Jacobian of the mapping.
 # Next, we can insert the expansion of $u$ into the formulation and identify the matrix system $Au=b$, where
 # \begin{align}
-# A_{j, i} &= \int_{K_{ref}} \phi_i(M_K(\bar x))\phi_j(M_K(\bar x))~\mathrm{d}\bar x\\
+# A_{j, i} &= \int_{K_{ref}} \phi_i(M_K(\bar x))\phi_j(M_K(\bar x))\vert \mathrm{det} J_K(\bar x)\vert~\mathrm{d}\bar x\\
 # b_j &= \int_{K_{ref}} \frac{\Big(\sum_{k=0}^{\mathcal{M}}f_k\psi_i(M_K(\bar x))\Big)}
-# {\Big(\sum_{l=0}^{\mathcal{T}}g_k\varphi_i(M_K(\bar x))\Big)}\phi_j(M_K(\bar x))~\mathrm{d}\bar x
+# {\Big(\sum_{l=0}^{\mathcal{T}}g_k\varphi_i(M_K(\bar x))\Big)}\phi_j(M_K(\bar x))\vert \mathrm{det} J_K(\bar x)\vert~\mathrm{d}\bar x
 # \end{align}
-# Next, one can choose an appropriate quadrature rule with points and weights
+# Next, one can choose an appropriate quadrature rule with points and weights, include the
+# correct mapping/restrictions of degrees of freedom for each cell.
+# All of this becomes quite tedious and error prone work, and has to be repeated for every variational form!
+# This is why we in FEniCS rely on code generation.
+# One can interpret the variational form written in UFL as a directed acyclic graph of operations,
+# where we for each simple operation can implement it as C code.
