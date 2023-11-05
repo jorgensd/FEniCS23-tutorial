@@ -121,8 +121,6 @@ problem = dolfinx.fem.petsc.LinearProblem(
     a, L, bcs=bcs, petsc_options=petsc_options)
 u = problem.solve()
 u.x.scatter_forward()
-with dolfinx.io.VTXWriter(mesh.comm, "u_ref.bp", [u]) as vtx:
-    vtx.write(0.0)
 
 # However, what goes on under the hood?
 
