@@ -283,3 +283,33 @@ u_lifted.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
                             mode=PETSc.ScatterMode.FORWARD)
 
 assert np.allclose(u_lifted.x.array, uh.x.array)
+
+# ## Alternative lifting procedure
+# The lifting procedure above is used in both C++ and Python, and what it does under the hood is to compute the local
+# matrix-vector products of $A_{d, bc}$ and $g$ (no global matrix vector products are involved). However, we can use UFL
+# to do this in a simpler fashion in Python
+
+g = dolfinx.fem.Function(V)
+g.x.array[:] = 0
+dolfinx.fem.set_bc(g.x.array, bcs)
+g.x.scatter_forward()
+L_lifted = L - ufl.action(a, g)
+
+# What happens here?
+#
+# `ufl.action` reduces the bi-linear form to a linear form (and would reduce a linear form to a scalar)
+#  by replacing the trial function with the function $g$, that is only non-zero at the Dirichlet condition
+
+A = dolfinx.fem.petsc.assemble_matrix(a_compiled, bcs=bcs)
+A.assemble()
+b_new = dolfinx.fem.petsc.assemble_vector(dolfinx.fem.form(L_lifted))
+dolfinx.fem.petsc.set_bc(b_new, bcs)
+b_new.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
+                  mode=PETSc.ScatterMode.FORWARD)
+solver.setOperators(A)
+u_new = dolfinx.fem.Function(V)
+solver.solve(b_lifting, u_new.vector)
+u_new.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
+                         mode=PETSc.ScatterMode.FORWARD)
+
+assert np.allclose(u_new.x.array, u.x.array)
