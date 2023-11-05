@@ -9,8 +9,10 @@ import ufl
 from mpi4py import MPI
 import dolfinx
 
+# + tags=["hide-output"]
 mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 30, 30)
 V = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 1))
+# -
 
 # Let us consider a simple heat equation,
 # \begin{align}
