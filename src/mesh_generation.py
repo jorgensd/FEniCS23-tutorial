@@ -6,10 +6,10 @@
 #
 # In DOLFINx, the mesh creation requires 4 inputs:
 #
-# - A MPI communicator: This is used to decide how the partitioning is performed. It is usually `MPI.COMM_WORLD` or `MPI.COMM_SELF`.
-# - Nodes: A set of coordinates in 1, 2 or 3D, that represents all the points in the mesh
-# - Connectivity: A nested list, where each row corresponds to the node indices of a single cell
-# - Coordinate element: A finite element used for pushing coordinates from the reference element to the physical element and its inverse.
+# - **MPI communicator**: This is used to decide how the partitioning is performed. It is usually `MPI.COMM_WORLD` or `MPI.COMM_SELF`.
+# - **Nodes**: A set of coordinates in 1, 2 or 3D, that represents all the points in the mesh
+# - **Connectivity**: A nested list, where each row corresponds to the node indices of a single cell
+# - **Coordinate element**: A finite element used for pushing coordinates from the reference element to the physical element and its inverse.
 #
 # As an example, let us consider a single element mesh, of a triangle with straight edges
 #
@@ -68,7 +68,7 @@ plot_mesh(domain)
 # For more information about mesh-partitioning and mesh input, see: https://jsdokken.com/dolfinx_docs/meshes.html
 
 
-# ## Mesh entities
+# ## Cell ownership
 #
 # For the remainder of this section we will consider a 3x3 unit square mesh:
 
