@@ -27,6 +27,10 @@ jobs:
     steps:
       # This action sets the current path to the root of your github repo
       - uses: actions/checkout@v4
+      - name: Install graphviz
+        run: |
+          apt-get update 
+          apt-get install -y graphviz-dev
       
       - name: Update pip
         run: python3 -m pip install --upgrade pip setuptools

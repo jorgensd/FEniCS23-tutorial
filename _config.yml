@@ -30,6 +30,7 @@ parse:
     - amsmath
     - dollarmath
     - linkify
+    - html_image
 
 sphinx:
   extra_extensions:

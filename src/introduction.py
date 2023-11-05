@@ -1,3 +1,4 @@
+# + [markdown] editable=true slideshow={"slide_type": "slide"}
 # # An introduction to the unified form language
 # As seen in DOLFINx in general, we use the unified form language (UFL) to
 # define variational forms.
@@ -10,7 +11,9 @@
 # \end{align}
 # where $\Omega$ is our computational domain, $f$ and $g$ are two known functions
 #
+# + [markdown] slideshow={"slide_type": "slide"}
 # ## Finite elements
+# + [markdown] slideshow={"slide_type": "skip"}
 # To solve this problem, we have to choose an approporiate finite element space to represent the function $k$ and $u$.
 # There is a large variety of finite elements, for instance the [Lagrange elements](https://defelement.com/elements/lagrange.html).
 # The basis function for a first order Lagrange element is shown below
@@ -23,7 +26,7 @@
 #
 # To symbolically represent this element, we use `ufl.FiniteElement`
 
-# +
+# + slideshow={"slide_type": ""}
 import numpy as np
 import basix.ufl_wrapper
 import ufl
@@ -109,7 +112,7 @@ F = ufl.FunctionSpace(domain, ufl.FiniteElement("DQ", domain.ufl_cell(), 0))
 f = ufl.Coefficient(F)
 G = ufl.FunctionSpace(domain, ufl.FiniteElement(
     "Lagrange", domain.ufl_cell(), 1))
-g = ufl.Coefficient(F)
+g = ufl.Coefficient(G)
 
 
 # ## The variational form
@@ -128,34 +131,3 @@ L = (f / g) * v * ufl.dx
 # As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx` or made a reference to the actual
 # computational domain we want to solve the problem on or what `f` or `g` is,
 # except for the choice of function spaces
-
-
-# # Code generation
-# All the code above is Python code symbolically describing the variational form of the projection.
-
-# To do so, we would define each of the functions as the linear
-# combinations of the basis functions
-# $u=\sum_{i=0}^{\mathcal{N}}u_i\phi_i(x)\qquad
-# v=\sum_{i=0}^{\mathcal{N}}v_i\phi_i(x)\qquad
-# f=\sum_{k=0}^{\mathcal{M}}f_k\psi_k(x)\qquad
-# g=\sum_{l=0}^{\mathcal{T}}g_l\varphi_l(x)$
-#
-# We next use the map $M_K:K_{ref}\mapsto K$
-# \begin{align}
-# \int_\Omega u v~\mathrm{d}x&= \sum_{K\in\mathcal{K}}\int_K u(x) v(x)~\mathrm{d}x\\
-# &= \sum_{K\in\mathcal{K}}\int_{M_K(K_{ref})} u(x)v(x)~\mathrm{d}x\\
-# &= \sum_{K\in\mathcal{K}}\int_{K_{ref}}u(M_K(\bar x))v(M_K(\bar x))\vert \mathrm{det} J_K(\bar x)\vert~\mathrm{d}\bar x
-# \end{align}
-# where $K$ is each element in the physical space, $J_K$ the Jacobian of the mapping.
-# Next, we can insert the expansion of $u$ into the formulation and identify the matrix system $Au=b$, where
-# \begin{align}
-# A_{j, i} &= \int_{K_{ref}} \phi_i(M_K(\bar x))\phi_j(M_K(\bar x))\vert \mathrm{det} J_K(\bar x)\vert~\mathrm{d}\bar x\\
-# b_j &= \int_{K_{ref}} \frac{\Big(\sum_{k=0}^{\mathcal{M}}f_k\psi_i(M_K(\bar x))\Big)}
-# {\Big(\sum_{l=0}^{\mathcal{T}}g_k\varphi_i(M_K(\bar x))\Big)}\phi_j(M_K(\bar x))\vert \mathrm{det} J_K(\bar x)\vert~\mathrm{d}\bar x
-# \end{align}
-# Next, one can choose an appropriate quadrature rule with points and weights, include the
-# correct mapping/restrictions of degrees of freedom for each cell.
-# All of this becomes quite tedious and error prone work, and has to be repeated for every variational form!
-# This is why we in FEniCS rely on code generation.
-# One can interpret the variational form written in UFL as a directed acyclic graph of operations,
-# where we for each simple operation can implement it as C code.

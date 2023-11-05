@@ -5,4 +5,4 @@ parts:
   - caption: "Finite elements and code generation"
     chapters:
     - file: "src/introduction.py"
-
+    - file: "src/code_generation.py"
