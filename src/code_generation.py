@@ -30,6 +30,11 @@ ffcx.main.main(["-o", str(cwd), "--visualise", str(infile)])
 
 os.system("ls introduction.*")
 
-# We can look at the assembly code for the local matrix
+# We can look at the assembly code for the local matrix. We start by inspecting the signature of the `tabulate_tensor` function,
+# that computes the local element matrix
+
+os.system("head -1212 introduction.c | tail +1207")
+
+# Next, we look at a part of the generated code
 
 os.system("head -1191 introduction.c | tail +1142")
