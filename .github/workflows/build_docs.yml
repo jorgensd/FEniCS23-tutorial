@@ -21,16 +21,16 @@ jobs:
     env: 
       PYTHONPATH: /usr/local/lib/python3/dist-packages:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.10/dist-packages
       DEB_PYTHON_INSTALL_LAYOUT: deb_system
-
+      PYVISTA_JUPYTER_BACKEND: "static"
     runs-on: ubuntu-22.04
     container: dolfinx/dolfinx:v0.6.0-r1
     steps:
       # This action sets the current path to the root of your github repo
       - uses: actions/checkout@v4
-      - name: Install graphviz
+      - name: Install graphviz and pyvista deps
         run: |
           apt-get update 
-          apt-get install -y graphviz-dev
+          apt-get install -y graphviz-dev libgl1-mesh-glx xvfb
       
       - name: Update pip
         run: python3 -m pip install --upgrade pip setuptools

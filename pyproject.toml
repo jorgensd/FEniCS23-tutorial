@@ -8,7 +8,7 @@ description = "Tutorial for FENiCS 2023"
 authors = [{name = "Jørgen S. Dokken", email = "dokken@simula.no"}]
 license = {file = "LICENSE"}
 readme = "README.md"
-dependencies = ["fenics-dolfinx==0.6.0", "pygraphviz"]
+dependencies = ["fenics-dolfinx==0.6.0", "pygraphviz", "pyvista", "ipythonparallel"]
 
 [project.optional-dependencies]
 dev = [
