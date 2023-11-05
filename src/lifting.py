@@ -17,7 +17,6 @@
 # We will use model the equations on a beam, with a fixed displacement at the right end,
 # clamping at the right end and no traction boundary conditions on all other boundaries.
 
-from IPython import embed
 from mpi4py import MPI
 import dolfinx
 import numpy as np
