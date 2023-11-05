@@ -69,6 +69,7 @@ facet_marker = dolfinx.mesh.meshtags(
 
 
 # # Variational formulation
+
 x = ufl.SpatialCoordinate(mesh)
 T_0 = dolfinx.fem.Constant(mesh, (0., 0., 0.))
 E = dolfinx.fem.Constant(mesh, 1.4e3)
@@ -86,6 +87,7 @@ def sigma(u):
     return 2.0 * mu * epsilon(u) + lmbda * ufl.tr(epsilon(u)) * ufl.Identity(len(u))
 
 
+# + tags=["hide-output"]
 ds = ufl.Measure("ds", domain=mesh, subdomain_data=facet_marker)
 u = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
@@ -93,6 +95,7 @@ a = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
 L = ufl.inner(f, v) * ufl.dx + ufl.inner(T_0, v) * ds(3)
 a_compiled = dolfinx.fem.form(a)
 L_compiled = dolfinx.fem.form(L)
+# -
 
 # ## Dirichlet conditions
 # We start by finding all dofs associated with the facets marked with each of the Dirichlet conditions
@@ -288,11 +291,13 @@ assert np.allclose(u_lifted.x.array, uh.x.array)
 # matrix-vector products of $A_{d, bc}$ and $g$ (no global matrix vector products are involved). However, we can use UFL
 # to do this in a simpler fashion in Python
 
+# + tags=["hide-output"]
 g = dolfinx.fem.Function(V)
 g.x.array[:] = 0
 dolfinx.fem.set_bc(g.x.array, bcs)
 g.x.scatter_forward()
 L_lifted = L - ufl.action(a, g)
+# -
 
 # What happens here?
 #
