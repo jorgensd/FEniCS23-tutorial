@@ -30,7 +30,7 @@ jobs:
       - name: Install graphviz and pyvista deps
         run: |
           apt-get update 
-          apt-get install -y graphviz-dev libgl1-mesh-glx xvfb
+          apt-get install -y graphviz-dev libgl1-mesa-glx xvfb
       
       - name: Update pip
         run: python3 -m pip install --upgrade pip setuptools
