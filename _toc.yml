@@ -12,3 +12,7 @@ parts:
   - caption: "Form compilation"
     chapters:
     - file: "src/form_compilation.py"
+  - caption: "Dirichlet boundary conditions"
+    chapters:
+    - file: "src/lifting.py"
+
