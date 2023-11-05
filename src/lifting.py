@@ -29,10 +29,12 @@ mesh = dolfinx.mesh.create_box(
     [15, 7, 7], cell_type=dolfinx.mesh.CellType.hexahedron)
 tdim = mesh.topology.dim
 
+# + tags=["hide-output"]
 el = ufl.VectorElement("Lagrange", mesh.ufl_cell(), 2)
 V = dolfinx.fem.FunctionSpace(mesh, el)
+# -
 
-# ## Define boundaries
+# # Define boundaries
 # We start by locate the various facets for the different boundary conditions.
 # First, we find all boundary facets (those facets that are connected to only one cell)
 
