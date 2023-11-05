@@ -7,3 +7,4 @@ parts:
     - file: "src/introduction.py"
     - file: "src/code_generation.py"
     - file: "src/mesh_generation.py"
+    - file: "src/form_compilation.py"
