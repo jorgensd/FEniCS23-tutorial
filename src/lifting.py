@@ -306,9 +306,11 @@ L_lifted = L - ufl.action(a, g)
 # `ufl.action` reduces the bi-linear form to a linear form (and would reduce a linear form to a scalar)
 #  by replacing the trial function with the function $g$, that is only non-zero at the Dirichlet condition
 
+# + tags=["hide-output"]
 A = dolfinx.fem.petsc.assemble_matrix(a_compiled, bcs=bcs)
 A.assemble()
 b_new = dolfinx.fem.petsc.assemble_vector(dolfinx.fem.form(L_lifted))
+# -
 dolfinx.fem.petsc.set_bc(b_new, bcs)
 b_new.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
                   mode=PETSc.ScatterMode.FORWARD)

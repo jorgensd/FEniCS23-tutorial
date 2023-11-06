@@ -32,6 +32,10 @@ domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
 
 
 def plot_mesh(mesh: dolfinx.mesh.Mesh):
+    """
+    Given a DOLFINx mesh, create a `pyvista.UnstructuredGrid`,
+    and plot it and the mesh nodes
+    """
     plotter = pyvista.Plotter()
     ugrid = pyvista.UnstructuredGrid(*dolfinx.plot.create_vtk_mesh(mesh))
     if mesh.geometry.cmap.degree > 1:

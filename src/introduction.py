@@ -7,7 +7,7 @@
 #
 # We will start with a standard problem, namely a projection:
 # \begin{align}
-# u &= \frac{f(x,y,z)}{g(x,y,z)} \qquad \text{in } \Omega(x,y,z).
+# u &= \frac{f(x,y,z)}{g(x,y,z)} \qquad \text{in } \Omega\subset \mathbb{R}^3.
 # \end{align}
 # where $\Omega$ is our computational domain, $f$ and $g$ are two known functions
 #
@@ -57,7 +57,7 @@ print(basix_element.tabulate(0, point))
 print(basix_element.tabulate(1, point))
 
 # Observe that the output we get from this command also includes the 0th order derivatives.
-# Thus we note that the output has the shape (num_spatial_derivatives+1, num_points, num_basis_functions)
+# Thus we note that the output has the shape `(num_spatial_derivatives+1, num_points, num_basis_functions)`
 #
 # Not every function we want to represent is scalar valued. For instance, in fluid flow problems, the Taylor-Hood finite element
 # pair is often used to represent the fluid velocity and pressure, where each component of the fluid velocity is in a Lagrange space.
@@ -127,6 +127,7 @@ a = ufl.inner(u, v) * ufl.dx
 
 L = (f / g) * v * ufl.dx
 forms = [a, L]
+
 # So far, so good?
 # As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx` or made a reference to the actual
 # computational domain we want to solve the problem on or what `f` or `g` is,
