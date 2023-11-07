@@ -18,7 +18,7 @@ env:
 
 jobs:
   build-docs:
-    env: 
+    env:
       PYTHONPATH: /usr/local/lib/python3/dist-packages:/usr/local/lib:/usr/local/dolfinx-real/lib/python3.10/dist-packages
       DEB_PYTHON_INSTALL_LAYOUT: deb_system
       PYVISTA_JUPYTER_BACKEND: "static"
@@ -31,9 +31,10 @@ jobs:
         run: |
           apt-get update 
           apt-get install -y graphviz-dev libgl1-mesa-glx xvfb
-      
+
       - name: Update pip
-        run: python3 -m pip install --upgrade pip setuptools
+        # Pin setuptools for old dolfinx due to https://github.com/FEniCS/ffcx/issues/553
+        run: python3 -m pip install --upgrade pip setuptools==65.5.1
 
       - name: Install dependencies
         run: python3 -m pip install -e ".[dev]"

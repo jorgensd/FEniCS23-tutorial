@@ -1,14 +1,20 @@
 [build-system] # Require setuptool version due to https://github.com/pypa/setuptools/issues/2938
-requires = ["setuptools>=61.0.0","pip>=23.1"]
+requires = ["setuptools>=61.0.0", "pip>=23.1"]
 
 [project]
 name = "FEniCS23"
 version = "0.6.0"
 description = "Tutorial for FENiCS 2023"
-authors = [{name = "Jørgen S. Dokken", email = "dokken@simula.no"}]
-license = {file = "LICENSE"}
+authors = [{ name = "Jørgen S. Dokken", email = "dokken@simula.no" }]
+license = { file = "LICENSE" }
 readme = "README.md"
-dependencies = ["fenics-dolfinx==0.6.0", "pygraphviz", "pyvista", "ipyparallel", "tqdm"]
+dependencies = [
+    "fenics-dolfinx==0.6.0",
+    "pygraphviz",
+    "pyvista",
+    "ipyparallel",
+    "tqdm",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -18,16 +24,12 @@ dev = [
     "flake8",
     "jupyter-book",
     "jupytext",
-    "jupyterlab"
+    "jupyterlab",
 ]
 
 [tool.mypy]
 ignore_missing_imports = true
 # Folders to exclude
-exclude = [
-    "build/"
-]
+exclude = ["build/"]
 # Folder to check with mypy
-files = [
-    "src",
-]
+files = ["src"]
