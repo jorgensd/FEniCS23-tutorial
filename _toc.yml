@@ -4,15 +4,18 @@ root: README
 parts:
   - caption: "Finite elements and code generation"
     chapters:
-    - file: "src/introduction.py"
-    - file: "src/code_generation.py"
+      - file: "src/introduction.py"
+      - file: "src/code_generation.py"
   - caption: "Meshes in DOLFINx"
     chapters:
-    - file: "src/mesh_generation.py"
+      - file: "src/mesh_generation.py"
   - caption: "Form compilation"
     chapters:
-    - file: "src/form_compilation.py"
+      - file: "src/form_compilation.py"
   - caption: "Dirichlet boundary conditions"
     chapters:
-    - file: "src/lifting.py"
-
+      - file: "src/lifting.py"
+  - caption: Approximation and outputting
+    chapters:
+      - file: "src/approximations.py"
+      - file: "src/outputting.py"
