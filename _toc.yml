@@ -4,6 +4,7 @@ root: README
 parts:
   - caption: "Finite elements and code generation"
     chapters:
+      - file: "src/problem_specification.py"
       - file: "src/introduction.py"
       - file: "src/code_generation.py"
   - caption: "Meshes in DOLFINx"

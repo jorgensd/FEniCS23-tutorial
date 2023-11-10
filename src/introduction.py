@@ -14,7 +14,7 @@
 # + [markdown] slideshow={"slide_type": "slide"}
 # ## Finite elements
 # + [markdown] slideshow={"slide_type": "skip"}
-# To solve this problem, we have to choose an approporiate finite element space to represent the function $k$ and $u$.
+# To solve this problem, we have to choose an appropriate finite element space to represent the function $k$ and $u$.
 # There is a large variety of finite elements, for instance the [Lagrange elements](https://defelement.com/elements/lagrange.html).
 # The basis function for a first order Lagrange element is shown below
 # <figure>
@@ -49,12 +49,12 @@ basix_element = basix.ufl_wrapper.convert_ufl_element(element)
 # the `basix.finite_element.FiniteElement.tabulate` function takes in two arguments, how many derivatives we want to compute,
 # and at what points in the reference element we want to compute them.
 
-point = np.array([[0., 0.5], [1, 0]], dtype=np.float64)
-print(basix_element.tabulate(0, point))
+points = np.array([[0., 0.5], [1, 0]], dtype=np.float64)
+print(basix_element.tabulate(0, points))
 
-# We can also compute the derivatives at any point in the reference element
+# We can also compute the derivatives at any points in the reference element
 
-print(basix_element.tabulate(1, point))
+print(basix_element.tabulate(1, points))
 
 # Observe that the output we get from this command also includes the 0th order derivatives.
 # Thus we note that the output has the shape `(num_spatial_derivatives+1, num_points, num_basis_functions)`
