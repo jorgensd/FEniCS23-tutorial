@@ -16,7 +16,7 @@ import ffcx.main
 from pathlib import Path
 import os
 cwd = Path.cwd()
-infile = cwd / "introduction.py"
+infile = cwd / "ufl_formulation.py"
 
 ffcx.main.main(["-o", str(cwd), "--visualise", str(infile)])
 
@@ -28,13 +28,11 @@ ffcx.main.main(["-o", str(cwd), "--visualise", str(infile)])
 
 # With this graph, we also get compiled `c` code:
 
-os.system("ls introduction.*")
+os.system("ls ufl_formulation.*")
 
 # We can look at the assembly code for the local matrix. We start by inspecting the signature of the `tabulate_tensor` function,
 # that computes the local element matrix
 
-os.system("head -1212 introduction.c | tail +1207")
+os.system("head -523 ufl_formulation.c | tail +476")
 
-# Next, we look at a part of the generated code
-
-os.system("head -1191 introduction.c | tail +1142")
+# "HELLO"

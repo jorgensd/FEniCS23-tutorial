@@ -6,6 +6,7 @@ parts:
     chapters:
       - file: "src/problem_specification.py"
       - file: "src/introduction.py"
+      - file: "src/ufl_formulation.py"
       - file: "src/code_generation.py"
   - caption: "Meshes in DOLFINx"
     chapters:
