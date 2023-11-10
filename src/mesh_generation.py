@@ -22,8 +22,8 @@ from mpi4py import MPI
 import pyvista
 pyvista.start_xvfb(1.0)
 
-nodes = np.array([[1., 0.], [2., 0.], [3., 2.]], dtype=np.float64)
-connectivity = np.array([[0, 1, 2]], dtype=np.int64)
+nodes = np.array([[1., 0.], [2., 0.], [3., 2.], [1, 3]], dtype=np.float64)
+connectivity = np.array([[0, 1, 2], [0, 2, 3]], dtype=np.int64)
 
 c_el = ufl.Mesh(ufl.VectorElement("Lagrange", ufl.triangle, 1))
 domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
