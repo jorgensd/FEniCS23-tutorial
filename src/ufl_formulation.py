@@ -85,12 +85,3 @@ pulled_back_L = ufl.algorithms.compute_form_data(L,
                                                  preserve_geometry_types=(
                                                      ufl.classes.Jacobian,))
 print(pulled_back_L.integral_data[0])
-
-# We can also expand the computation of the Jacobian
-#
-
-expanded_L = ufl.algorithms.compute_form_data(L,
-                                              do_apply_function_pullbacks=True,
-                                              do_apply_integral_scaling=True,
-                                              do_apply_geometry_lowering=True)
-print(expanded_L.integral_data[0])
