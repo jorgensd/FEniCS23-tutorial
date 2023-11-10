@@ -99,7 +99,7 @@ a_compiled = dolfinx.fem.form(a)
 L_compiled = dolfinx.fem.form(L)
 
 # + [markdown]
-# We generate the initial condition by using lamda expressions
+# We generate the initial condition by using lambda expressions
 # -
 
 

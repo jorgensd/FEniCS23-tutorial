@@ -43,9 +43,14 @@ boundary_facets = dolfinx.mesh.exterior_facet_indices(mesh.topology)
 
 # Next we find those facets that should be clamped, and those that should have a non-zero traction on it.
 
+
+def left_facets(x):
+    return np.isclose(x[0], 0.)
+
+
 clamped_facets = dolfinx.mesh.locate_entities_boundary(
     mesh, tdim-1,
-    lambda x: np.isclose(x[0], 0.))
+    left_facets)
 prescribed_facets = dolfinx.mesh.locate_entities_boundary(
     mesh, tdim-1,
     lambda x: np.isclose(x[0], L))
