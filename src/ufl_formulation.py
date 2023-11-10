@@ -7,6 +7,7 @@
 # functions defined on the reference element to the physical domain.
 # In this example, we will use straight edged hexahedral elements, and therefore the coordinate element
 # can be defined as
+
 import ufl
 
 c_el = ufl.VectorElement("Lagrange", ufl.triangle, 1)
