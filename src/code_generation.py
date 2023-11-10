@@ -34,5 +34,3 @@ os.system("ls ufl_formulation.*")
 # that computes the local element matrix
 
 os.system("head -523 ufl_formulation.c | tail +476")
-
-# "HELLO"
