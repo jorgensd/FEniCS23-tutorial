@@ -178,7 +178,7 @@ V = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 1))
 
 
 V_projector = Projector(
-    V, petsc_options={"ksp_type": "pre_only", "pc_type": "lu"})
+    V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
 uh = V_projector.project(h(V.mesh))
 
 pyvista.start_xvfb(1.0)
@@ -207,7 +207,7 @@ W = dolfinx.fem.FunctionSpace(mesh, ("DG", 1))
 
 
 W_projector = Projector(
-    W, petsc_options={"ksp_type": "pre_only", "pc_type": "lu"})
+    W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
 wh = W_projector.project(h(W.mesh))
 
 
