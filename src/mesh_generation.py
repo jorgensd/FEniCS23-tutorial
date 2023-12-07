@@ -38,7 +38,7 @@ def plot_mesh(mesh: dolfinx.mesh.Mesh):
     """
     plotter = pyvista.Plotter()
     ugrid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(mesh))
-    if mesh.geometry.cmap.degree > 1:
+    if mesh.geometry.cmaps[0].degree > 1:
         plotter.add_mesh(ugrid, style="points", color="b", point_size=10)
         ugrid = ugrid.tessellate()
         show_edges = False
