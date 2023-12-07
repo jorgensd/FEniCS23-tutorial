@@ -7,6 +7,7 @@
 import numpy as np
 import ufl
 from mpi4py import MPI
+import dolfinx.fem.petsc
 import dolfinx
 
 # + tags=["hide-output"]
@@ -122,7 +123,7 @@ u_n.interpolate(u_init)
 
 uh = dolfinx.fem.Function(V)
 petsc_options = {"ksp_type": "preonly",
-                 "pc_type": "lu", "pc_factor_solver_type": "mumps"}
+                 "pc_type": "lu", "pc_factor_mat_solver_type": "mumps"}
 problem = dolfinx.fem.petsc.LinearProblem(
     a_compiled, L_compiled, u=uh, bcs=[], petsc_options=petsc_options)
 

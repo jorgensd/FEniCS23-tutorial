@@ -19,6 +19,7 @@
 
 from mpi4py import MPI
 import dolfinx
+import dolfinx.fem.petsc
 import numpy as np
 import ufl
 from petsc4py import PETSc
@@ -125,7 +126,7 @@ bcs = [dolfinx.fem.dirichletbc(u_clamped, clamped_dofs, V),
 
 # In most situations, you would just pass this object to the linear problem and it would be handled for you
 petsc_options = {"ksp_type": "preonly",
-                 "pc_type": "lu", "pc_factor_solver_type": "mumps"}
+                 "pc_type": "lu", "pc_factor_mat_solver_type": "mumps"}
 problem = dolfinx.fem.petsc.LinearProblem(
     a, L, bcs=bcs, petsc_options=petsc_options)
 u = problem.solve()
@@ -180,7 +181,7 @@ print(f"Matrix A is symmetric after assembly: {A.isSymmetric(1e-5)}")
 # We do this with DOLFINx in the following way
 
 for bc in bcs:
-    dofs, _ = bc.dof_indices()
+    dofs, _ = bc._cpp_object.dof_indices()
     A.zeroRowsLocal(dofs, diag=1)
 
 # Next, we could assemble the RHS vector as normal and set the BC values
@@ -266,7 +267,7 @@ A_lifting = dolfinx.fem.petsc.assemble_matrix(a_compiled, bcs=bcs)
 A_lifting.assemble()
 
 # converts all columns and rows with a Dirichlet dofs to the identity row/column (during local assembly.
-# 2. `assemble_vector` without DirichletBC
+# 2. `assemble_vector` without dirichletbc
 
 b_lifting = dolfinx.fem.petsc.assemble_vector(L_compiled)
 

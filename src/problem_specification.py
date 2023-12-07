@@ -46,7 +46,7 @@ uh = problem.solve()
 def plot_scalar_function(u: dolfinx.fem.Function):
     pyvista.start_xvfb(1.0)
     u_grid = pyvista.UnstructuredGrid(
-        *dolfinx.plot.create_vtk_mesh(u.function_space))
+        *dolfinx.plot.vtk_mesh(u.function_space))
     u_grid.point_data["u"] = u.x.array
     plotter = pyvista.Plotter()
     plotter.add_mesh(u_grid)

@@ -28,7 +28,7 @@
 
 # + slideshow={"slide_type": ""}
 import numpy as np
-import basix.ufl_wrapper
+import basix.ufl
 import ufl
 
 element = ufl.FiniteElement("Lagrange", ufl.triangle, 1)
@@ -43,7 +43,7 @@ element = ufl.FiniteElement("Lagrange", ufl.triangle, 1)
 # In FENiCSx, we use [Basix](https://github.com/FEniCS/basix/) to tabulate finite elements.
 # Basix can convert any `ufl`-element into a basix finite element, which we in turn can evaluate.
 
-basix_element = basix.ufl_wrapper.convert_ufl_element(element)
+basix_element = basix.ufl.convert_ufl_element(element)
 
 # Lets next tabulate the basis functions of our element at a given point `p=(0, 0.5)` in the reference element.
 # the `basix.finite_element.FiniteElement.tabulate` function takes in two arguments, how many derivatives we want to compute,
@@ -67,17 +67,17 @@ vector_element = ufl.VectorElement("Lagrange", ufl.triangle, 2, dim=2)
 
 # We can also use basix for this
 
-el = basix.ufl_wrapper.create_element("Lagrange", "triangle", 2)
-v_el = basix.ufl_wrapper.VectorElement(el, size=2)
+el = basix.ufl.element("Lagrange", "triangle", 2)
+v_el = basix.ufl.blocked_element(el, shape=(2,))
 
 # Both these definitions of elements are compatible with DOLFINx. The reason for having both of them is that basix offers more tweaking of the finite
 # elements that the UFL definition does. For more information regarding this see:
-# [Variants of Lagrange elements](https://docs.fenicsproject.org/dolfinx/v0.6.0/python/demos/demo_lagrange_variants.html)
+# [Variants of Lagrange elements](https://docs.fenicsproject.org/dolfinx/v0.7.2/python/demos/demo_lagrange_variants.html)
 
-# To create the Taylor-Hood finite element pair, we use the `ufl.MixedElement`/`basix.ufl_wrapper.MixedElement` syntax
+# To create the Taylor-Hood finite element pair, we use the `ufl.MixedElement`/`basix.ufl.mixed_element` syntax
 
 m_el = ufl.MixedElement([vector_element, element])
-m_el_basix = basix.ufl_wrapper.MixedElement([v_el, basix_element])
+m_el_basix = basix.ufl.mixed_element([v_el, basix_element])
 
 # There is a wide range of finite elements that are supported by ufl and basix.
 # See for instance: [Supported elements in basix/ufl](https://defelement.com/lists/implementations/basix.ufl.html).

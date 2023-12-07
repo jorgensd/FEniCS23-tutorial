@@ -19,6 +19,7 @@
 import pyvista
 import numpy as np
 import dolfinx
+import dolfinx.fem.petsc
 from mpi4py import MPI
 import ufl
 from petsc4py import PETSc
@@ -49,7 +50,7 @@ class Projector():
 
     _A: PETSc.Mat  # The mass matrix
     _b: PETSc.Vec  # The rhs vector
-    _lhs: dolfinx.fem.FormMetaClass  # The compiled form for the mass matrix
+    _lhs: dolfinx.fem.Form  # The compiled form for the mass matrix
     _ksp: PETSc.KSP  # The PETSc solver
     _x: dolfinx.fem.Function  # The solution vector
     _dx: ufl.Measure  # Integration measure
@@ -90,6 +91,8 @@ class Projector():
             opts[k] = v
         opts.prefixPop()
         self._ksp.setFromOptions()
+        for opt in opts.getAll().keys():
+            del opts[opt]
 
         # Set matrix and vector PETSc options
         self._A.setOptionsPrefix(prefix)
@@ -158,8 +161,7 @@ compiled_h = dolfinx.fem.Expression(h(mesh), np.array([0.5]))
 
 # We can now evaluate the expression at the point 0.5 in the reference element for any cell (this coordinate is then pushed forward to the given input cell).
 # For instance, we can evaluate this expression in the cell with index 0 with
-
-compiled_h.eval([0])
+compiled_h.eval(mesh, np.array([0], dtype=np.int32))
 
 # We can also interpolate functions from an expression into any suitable function space by calling
 
@@ -176,7 +178,7 @@ V = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 1))
 
 
 V_projector = Projector(
-    V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    V, petsc_options={"ksp_type": "pre_only", "pc_type": "lu"})
 uh = V_projector.project(h(V.mesh))
 
 pyvista.start_xvfb(1.0)
@@ -186,7 +188,7 @@ pyvista.start_xvfb(1.0)
 
 def plot_1D_scalar_function(u: dolfinx.fem.Function, title: str):
     u_grid = pyvista.UnstructuredGrid(
-        *dolfinx.plot.create_vtk_mesh(u.function_space))
+        *dolfinx.plot.vtk_mesh(u.function_space))
     u_grid.point_data["u"] = u.x.array
     warped = u_grid.warp_by_scalar()
     plotter = pyvista.Plotter()
@@ -205,7 +207,7 @@ W = dolfinx.fem.FunctionSpace(mesh, ("DG", 1))
 
 
 W_projector = Projector(
-    W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    W, petsc_options={"ksp_type": "pre_only", "pc_type": "lu"})
 wh = W_projector.project(h(W.mesh))
 
 

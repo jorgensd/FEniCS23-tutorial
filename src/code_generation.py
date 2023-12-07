@@ -33,4 +33,4 @@ os.system("ls ufl_formulation.*")
 # We can look at the assembly code for the local matrix. We start by inspecting the signature of the `tabulate_tensor` function,
 # that computes the local element matrix
 
-os.system("head -523 ufl_formulation.c | tail +476")
+os.system("head -336 ufl_formulation.c | tail +283")
