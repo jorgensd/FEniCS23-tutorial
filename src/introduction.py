@@ -72,7 +72,7 @@ v_el = basix.ufl.blocked_element(el, shape=(2,))
 
 # Both these definitions of elements are compatible with DOLFINx. The reason for having both of them is that basix offers more tweaking of the finite
 # elements that the UFL definition does. For more information regarding this see:
-# [Variants of Lagrange elements](https://docs.fenicsproject.org/dolfinx/v0.6.0/python/demos/demo_lagrange_variants.html)
+# [Variants of Lagrange elements](https://docs.fenicsproject.org/dolfinx/v0.7.2/python/demos/demo_lagrange_variants.html)
 
 # To create the Taylor-Hood finite element pair, we use the `ufl.MixedElement`/`basix.ufl.mixed_element` syntax
 
