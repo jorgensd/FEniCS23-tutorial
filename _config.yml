@@ -41,6 +41,7 @@ sphinx:
     - "sphinx.ext.viewcode"
 
   config:
+    html_last_updated_fmt: "%b %d, %Y"
     html_theme_options:
       navigation_with_keys: false
     nb_custom_formats:

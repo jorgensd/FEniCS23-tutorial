@@ -8,9 +8,12 @@
 # In this example, we will use straight edged hexahedral elements, and therefore the coordinate element
 # can be defined as
 
+
+import basix.ufl
 import ufl
 
-c_el = ufl.VectorElement("Lagrange", ufl.triangle, 1)
+cell = "triangle"
+c_el = basix.ufl.element("Lagrange", cell, 1, shape=(2, ))
 
 # Next, we create an abstract definition of the computational domain. For now, we don't know if we are solving
 # the Poisson equation on a cube, a sphere or on the wing of an airplane.
@@ -18,19 +21,19 @@ c_el = ufl.VectorElement("Lagrange", ufl.triangle, 1)
 domain = ufl.Mesh(c_el)
 
 # ## The function space
-# As oposed some commerical software, we do not rely on iso-parameteric elements in FEniCS.
+# As opposed some commercial software, we do not rely on iso-parameteric elements in FEniCS.
 # We can use any supported finite element space to describe our unknown `u`.
 
-el = ufl.FiniteElement("Discontinuous Lagrange", domain.ufl_cell(), 2)
+el = basix.ufl.element("Discontinuous Lagrange", cell, 2)
 V = ufl.FunctionSpace(domain, el)
 
 # For the coefficients `f` and `g`, we choose
 
-F = ufl.FunctionSpace(domain, ufl.FiniteElement(
-    "Discontinuous Lagrange", domain.ufl_cell(), 0))
+F = ufl.FunctionSpace(domain, basix.ufl.element(
+    "Discontinuous Lagrange", cell, 0))
 f = ufl.Coefficient(F)
-G = ufl.FunctionSpace(domain, ufl.FiniteElement(
-    "Lagrange", domain.ufl_cell(), 1))
+G = ufl.FunctionSpace(domain, basix.ufl.element(
+    "Lagrange", cell, 1))
 g = ufl.Coefficient(G)
 
 
