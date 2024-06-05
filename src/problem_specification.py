@@ -24,14 +24,14 @@ import ufl
 import numpy as np
 
 mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 10, 10)
-V = dolfinx.fem.FunctionSpace(mesh, ("Discontinuous Lagrange", 3))
+V = dolfinx.fem.functionspace(mesh, ("Discontinuous Lagrange", 3))
 u = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
 a = u * v * ufl.dx
 
-F = dolfinx.fem.FunctionSpace(mesh, ("Discontinuous Lagrange", 2))
+F = dolfinx.fem.functionspace(mesh, ("Discontinuous Lagrange", 2))
 f = dolfinx.fem.Function(F)
-G = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 2))
+G = dolfinx.fem.functionspace(mesh, ("Lagrange", 2))
 g = dolfinx.fem.Function(G)
 
 L = f / g * v * ufl.dx

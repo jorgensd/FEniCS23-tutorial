@@ -16,6 +16,7 @@
 # the left hand side is constant. Thus, it would make sense to only assemble the matrix once.
 # Following this, we create a general projector class
 
+import dolfinx.fem.function
 import pyvista
 import numpy as np
 import dolfinx
@@ -118,7 +119,7 @@ class Projector():
         self._b.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
                                    mode=PETSc.ScatterMode.FORWARD)
 
-    def project(self, h: ufl.core.expr.Expr):
+    def project(self, h: ufl.core.expr.Expr) -> dolfinx.fem.Function:
         """
         Compute projection using a PETSc KSP solver
 
@@ -128,6 +129,10 @@ class Projector():
         self.assemble_rhs(h)
         self._ksp.solve(self._b.vector, self._x.vector)
         return self._x
+    
+    def __del__(self):
+        self._A.destroy()
+        self._ksp.destroy()
 
 # With this class, we can send in any expression written in the unified form language to the projector,
 # and then generate code for the right hand side assembly, and then solve the linear system.
@@ -165,7 +170,7 @@ compiled_h.eval(mesh, np.array([0], dtype=np.int32))
 
 # We can also interpolate functions from an expression into any suitable function space by calling
 
-V = dolfinx.fem.FunctionSpace(mesh, ("Discontinuous Lagrange", 2))
+V = dolfinx.fem.functionspace(mesh, ("Discontinuous Lagrange", 2))
 compiled_h_for_V = dolfinx.fem.Expression(
     h(mesh), V.element.interpolation_points())
 
@@ -174,7 +179,7 @@ compiled_h_for_V = dolfinx.fem.Expression(
 # Let us now test the code for a first order Lagrange space
 
 mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 20)
-V = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 1))
+V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 
 
 V_projector = Projector(
@@ -203,7 +208,7 @@ plot_1D_scalar_function(uh, "First order Lagrange")
 
 # We can now repeat the study for a DG-1 function
 
-W = dolfinx.fem.FunctionSpace(mesh, ("DG", 1))
+W = dolfinx.fem.functionspace(mesh, ("DG", 1))
 
 
 W_projector = Projector(
@@ -219,8 +224,8 @@ plot_1D_scalar_function(wh, "First order Discontinuous Lagrange")
 
 for N in [50, 100, 200]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
-    V = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 1))
-    W = dolfinx.fem.FunctionSpace(mesh, ("DG", 1))
+    V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
+    W = dolfinx.fem.functionspace(mesh, ("DG", 1))
     V_projector = Projector(
         V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     uh = V_projector.project(h(V.mesh))
@@ -245,8 +250,8 @@ def h_aligned(mesh: dolfinx.mesh.Mesh):
 
 for N in [20, 40, 80]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
-    V = dolfinx.fem.FunctionSpace(mesh, ("Lagrange", 1))
-    W = dolfinx.fem.FunctionSpace(mesh, ("DG", 1))
+    V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
+    W = dolfinx.fem.functionspace(mesh, ("DG", 1))
     V_projector = Projector(
         V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     uh = V_projector.project(h_aligned(V.mesh))

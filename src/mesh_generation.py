@@ -16,6 +16,7 @@
 
 import ipyparallel as ipp
 import dolfinx
+import basix.ufl
 import numpy as np
 import ufl
 from mpi4py import MPI
@@ -25,7 +26,7 @@ pyvista.start_xvfb(1.0)
 nodes = np.array([[1., 0.], [2., 0.], [3., 2.], [1, 3]], dtype=np.float64)
 connectivity = np.array([[0, 1, 2], [0, 2, 3]], dtype=np.int64)
 
-c_el = ufl.Mesh(ufl.VectorElement("Lagrange", ufl.triangle, 1))
+c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 1, shape=(nodes.shape[1],)))
 domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
 
 # We start by creating a simple plotter by interfacing with Pyvista
@@ -38,7 +39,7 @@ def plot_mesh(mesh: dolfinx.mesh.Mesh):
     """
     plotter = pyvista.Plotter()
     ugrid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(mesh))
-    if mesh.geometry.cmaps[0].degree > 1:
+    if mesh.geometry.cmap.degree > 1:
         plotter.add_mesh(ugrid, style="points", color="b", point_size=10)
         ugrid = ugrid.tessellate()
         show_edges = False
@@ -62,7 +63,7 @@ nodes = np.array([[1., 0.], [2., 0.], [3., 2.],
                   [2.9, 1.3], [1.5, 1.5], [1.5, -0.2]], dtype=np.float64)
 connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
 
-c_el = ufl.Mesh(ufl.VectorElement("Lagrange", ufl.triangle, 2))
+c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 2, shape=(nodes.shape[1],)))
 domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
 plot_mesh(domain)
 

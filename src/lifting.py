@@ -31,8 +31,7 @@ mesh = dolfinx.mesh.create_box(
 tdim = mesh.topology.dim
 
 # + tags=["hide-output"]
-el = ufl.VectorElement("Lagrange", mesh.ufl_cell(), 2)
-V = dolfinx.fem.FunctionSpace(mesh, el)
+V = dolfinx.fem.functionspace(mesh, ("Lagrange", 2, (mesh.geometry.dim, )))
 # -
 
 # # Define boundaries
