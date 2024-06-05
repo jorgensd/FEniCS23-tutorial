@@ -42,7 +42,7 @@ jobs:
         run: jupyter book build -W .
 
       - name: Upload documentation as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: ${{ env.PUBLISH_DIR }}
