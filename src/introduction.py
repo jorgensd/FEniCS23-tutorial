@@ -63,7 +63,7 @@ print(element.tabulate(1, points))
 vector_element = basix.ufl.element("Lagrange", "triangle", 2, shape=(2, ))
 
 # Basix allows for a large variety of extra options to tweak your finite elements, see for instance
-# [Variants of Lagrange elements](https://docs.fenicsproject.org/dolfinx/v0.7.2/python/demos/demo_lagrange_variants.html)
+# [Variants of Lagrange elements](https://docs.fenicsproject.org/dolfinx/v0.8.0/python/demos/demo_lagrange_variants.html)
 # for how to choose the node spacing in a Lagrange element.
 
 # To create the Taylor-Hood finite element pair, we use the `basix.ufl.mixed_element`
