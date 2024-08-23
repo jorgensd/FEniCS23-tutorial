@@ -1,24 +1,37 @@
 # # A complete variational form
-# ## The computational domain
-# Now that we have covered how to define finite elements, we can move on
-# to the computational domain $\Omega$.
-# We can use either tetrahedral and hexahedral elements to subdivide the continuous
-# domain into a discrete domain. We define a coordinate element, which is used to map
-# functions defined on the reference element to the physical domain.
-# In this example, we will use straight edged hexahedral elements, and therefore the coordinate element
-# can be defined as
+# The aim of this section is to formulate a fully symbolic variational formulation for the projection problem
+# given in the [Problem Specification](./problem_specification).
+# We start by focusing on the computational domain $\Omega$,
 
+# ## The computational domain
+# For a 3D problem, we can represent the computational domain by either tetrahedral or hexahedral elements.
+# For a 2D problem, we can use either triangular or quadrilateral elements.
+#
+# One of the fundamental ideas in the Finite Element method is to map the integrals from the physical domain
+# to the reference domain element by element, and then insert the local contribution in the global system.
+# The required operations for this mapping is to be able to compute the Jacobian, its inverse and determinant
+# for any of the cells above, when represented by points $p_0, \dots, p_M$, $M$ being the number of
+# nodes describing the cell.
+
+
+# In this example, we will use straight edged triangular elements, which we note that we can represent by
+# a first order Lagrange element.
 
 import basix.ufl
 import ufl
 
 cell = "triangle"
-c_el = basix.ufl.element("Lagrange", cell, 1, shape=(2, ))
+c_el = basix.ufl.element("Lagrange", cell, 1, shape=(2,))
 
-# Next, we create an abstract definition of the computational domain. For now, we don't know if we are solving
-# the Poisson equation on a cube, a sphere or on the wing of an airplane.
+# Note that if we wanted to represent a 2D manifold represented in 3D, we could change the `shape`-parameter to `(3, )`.
+# We call this element the coordinate element, as it represents the transformation of coordinates back and forth from the
+# reference element.
 
+# In the unified form language we make explicit representations of the computational domain, using `ufl.Mesh`.
 domain = ufl.Mesh(c_el)
+
+# We note that this is a purely symbolic representation, it doesn't matter if we are solving something on a
+# unit square, a circle or a 2D slice through a brain.
 
 # ## The function space
 # As opposed some commercial software, we do not rely on iso-parameteric elements in FEniCS.
@@ -29,17 +42,15 @@ V = ufl.FunctionSpace(domain, el)
 
 # For the coefficients `f` and `g`, we choose
 
-F = ufl.FunctionSpace(domain, basix.ufl.element(
-    "Discontinuous Lagrange", cell, 0))
+F = ufl.FunctionSpace(domain, basix.ufl.element("Discontinuous Lagrange", cell, 0))
 f = ufl.Coefficient(F)
-G = ufl.FunctionSpace(domain, basix.ufl.element(
-    "Lagrange", cell, 1))
+G = ufl.FunctionSpace(domain, basix.ufl.element("Lagrange", cell, 1))
 g = ufl.Coefficient(G)
 
 
 # ## The variational form
 # We obtain them in the standard way, by multiplying by a test function
-# and integrating over the .domain
+# and integrating over the domain, we do this by using `dx`, which means that we integrate over all cells of the mesh.
 
 u = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
@@ -51,9 +62,9 @@ L = (f / g) * v * ufl.dx
 forms = [a, L]
 
 # So far, so good?
-# As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx` or made a reference to the actual
-# computational domain we want to solve the problem on or what `f` or `g` is,
-# except for the choice of function spaces
+# As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx` 
+# or made a reference to the actual computational domain we want to solve the problem on or what `f` or `g` is,
+# except for the choice of function spaces.
 
 
 # ## Further analysis of the variational form
@@ -81,10 +92,11 @@ forms = [a, L]
 # correct mapping/restrictions of degrees of freedom for each cell.
 # All of this becomes quite tedious and error prone work, and has to be repeated for every variational form!
 
-pulled_back_L = ufl.algorithms.compute_form_data(L,
-                                                 do_apply_function_pullbacks=True,
-                                                 do_apply_integral_scaling=True,
-                                                 do_apply_geometry_lowering=True,
-                                                 preserve_geometry_types=(
-                                                     ufl.classes.Jacobian,))
+pulled_back_L = ufl.algorithms.compute_form_data(
+    L,
+    do_apply_function_pullbacks=True,
+    do_apply_integral_scaling=True,
+    do_apply_geometry_lowering=True,
+    preserve_geometry_types=(ufl.classes.Jacobian,),
+)
 print(pulled_back_L.integral_data[0])
