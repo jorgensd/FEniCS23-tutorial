@@ -200,8 +200,8 @@ solver.setOperators(A)
 solver.setType(PETSc.KSP.Type.PREONLY)
 solver.getPC().setType(PETSc.PC.Type.LU)
 solver.getPC().setFactorSolverType("mumps")
-solver.solve(b, uh.vector)
-uh.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
+solver.solve(b, uh.x.petsc_vec)
+uh.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 # We can check that we get the same solution
 
@@ -285,8 +285,8 @@ print(f"Matrix is symmetric after lifting assembly: {A_lifting.isSymmetric(1e-5)
 
 solver.setOperators(A_lifting)
 u_lifted = dolfinx.fem.Function(V)
-solver.solve(b_lifting, u_lifted.vector)
-u_lifted.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
+solver.solve(b_lifting, u_lifted.x.petsc_vec)
+u_lifted.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 assert np.allclose(u_lifted.x.array, uh.x.array)
 
@@ -317,7 +317,7 @@ dolfinx.fem.petsc.set_bc(b_new, bcs)
 b_new.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 solver.setOperators(A)
 u_new = dolfinx.fem.Function(V)
-solver.solve(b_lifting, u_new.vector)
-u_new.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
+solver.solve(b_lifting, u_new.x.petsc_vec)
+u_new.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 assert np.allclose(u_new.x.array, u.x.array)

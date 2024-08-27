@@ -102,8 +102,8 @@ class Projector:
         # Set matrix and vector PETSc options
         self._A.setOptionsPrefix(prefix)
         self._A.setFromOptions()
-        self._b.vector.setOptionsPrefix(prefix)
-        self._b.vector.setFromOptions()
+        self._b.x.petsc_vec.setOptionsPrefix(prefix)
+        self._b.x.petsc_vec.setFromOptions()
 
     def reassemble_lhs(self):
         dolfinx.fem.petsc.assemble_matrix(self._A, self._lhs)
@@ -117,9 +117,9 @@ class Projector:
         rhs = ufl.inner(h, v) * self._dx
         rhs_compiled = dolfinx.fem.form(rhs)
         self._b.x.array[:] = 0.0
-        dolfinx.fem.petsc.assemble_vector(self._b.vector, rhs_compiled)
-        self._b.vector.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
-        self._b.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
+        dolfinx.fem.petsc.assemble_vector(self._b.x.petsc_vec, rhs_compiled)
+        self._b.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
+        self._b.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
     def project(self, h: ufl.core.expr.Expr) -> dolfinx.fem.Function:
         """
@@ -129,7 +129,7 @@ class Projector:
             assemble_rhs: Re-assemble RHS and re-apply boundary conditions if true
         """
         self.assemble_rhs(h)
-        self._ksp.solve(self._b.vector, self._x.vector)
+        self._ksp.solve(self._b.x.petsc_vec, self._x.x.petsc_vec)
         return self._x
 
     def __del__(self):
