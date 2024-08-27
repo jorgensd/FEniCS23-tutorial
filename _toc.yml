@@ -4,10 +4,10 @@ root: README
 parts:
   - caption: "Finite elements and code generation"
     chapters:
-      - file: "src/problem_specification.py"
       - file: "src/introduction.py"
       - file: "src/ufl_formulation.py"
       - file: "src/code_generation.py"
+      - file: "src/problem_specification.py"
   - caption: "Meshes in DOLFINx"
     chapters:
       - file: "src/mesh_generation.py"

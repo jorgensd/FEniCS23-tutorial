@@ -4,11 +4,13 @@
 # This process can be somewhat time consuming, as generating, compiling and linking the code can take time.
 # We start by setting up a simple unit square and a first order Lagrange space.
 
-import numpy as np
-import ufl
 from mpi4py import MPI
-import dolfinx.fem.petsc
+
+import numpy as np
+
 import dolfinx
+import dolfinx.fem.petsc
+import ufl
 
 # + tags=["hide-output"]
 mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 30, 30)
@@ -55,7 +57,7 @@ def k_func(t):
 
 
 k = dolfinx.fem.Constant(mesh, 0.1)
-t = dolfinx.fem.Constant(mesh, 0.)
+t = dolfinx.fem.Constant(mesh, 0.0)
 while t.value < 1:
     # Update t
     t.value += dt.value
@@ -109,7 +111,12 @@ def u_init(x, sigma=0.1, mu=0.3):
     The input function x is a (3, number_of_points) numpy array, which is then
     evaluated with the vectorized numpy functions for efficiency
     """
-    return 1./(2 * np.pi * sigma)*np.exp(-0.5*((x[0]-mu)/sigma)**2)*np.exp(-0.5*((x[1]-mu)/sigma)**2)
+    return (
+        1.0
+        / (2 * np.pi * sigma)
+        * np.exp(-0.5 * ((x[0] - mu) / sigma) ** 2)
+        * np.exp(-0.5 * ((x[1] - mu) / sigma) ** 2)
+    )
 
 
 u_n.interpolate(u_init)
@@ -122,10 +129,12 @@ u_n.interpolate(u_init)
 # -
 
 uh = dolfinx.fem.Function(V)
-petsc_options = {"ksp_type": "preonly",
-                 "pc_type": "lu", "pc_factor_mat_solver_type": "mumps"}
-problem = dolfinx.fem.petsc.LinearProblem(
-    a_compiled, L_compiled, u=uh, bcs=[], petsc_options=petsc_options)
+petsc_options = {
+    "ksp_type": "preonly",
+    "pc_type": "lu",
+    "pc_factor_mat_solver_type": "mumps",
+}
+problem = dolfinx.fem.petsc.LinearProblem(a_compiled, L_compiled, u=uh, bcs=[], petsc_options=petsc_options)
 
 # For each temporal step, we update the time variable and call the `solve` command that re-assemble the system
 

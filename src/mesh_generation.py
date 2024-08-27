@@ -14,16 +14,19 @@
 # As an example, let us consider a single element mesh, of a triangle with straight edges
 #
 
-import ipyparallel as ipp
-import dolfinx
-import basix.ufl
-import numpy as np
-import ufl
 from mpi4py import MPI
+
+import ipyparallel as ipp
+import numpy as np
 import pyvista
+
+import basix.ufl
+import dolfinx
+import ufl
+
 pyvista.start_xvfb(1.0)
 
-nodes = np.array([[1., 0.], [2., 0.], [3., 2.], [1, 3]], dtype=np.float64)
+nodes = np.array([[1.0, 0.0], [2.0, 0.0], [3.0, 2.0], [1, 3]], dtype=np.float64)
 connectivity = np.array([[0, 1, 2], [0, 2, 3]], dtype=np.int64)
 
 c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 1, shape=(nodes.shape[1],)))
@@ -59,8 +62,10 @@ plot_mesh(domain)
 # ## Higher order meshes
 # If we want to create a mesh with higher order edges, we can supply the extra nodes to the mesh geometry, and adjust the coordinate element
 
-nodes = np.array([[1., 0.], [2., 0.], [3., 2.],
-                  [2.9, 1.3], [1.5, 1.5], [1.5, -0.2]], dtype=np.float64)
+nodes = np.array(
+    [[1.0, 0.0], [2.0, 0.0], [3.0, 2.0], [2.9, 1.3], [1.5, 1.5], [1.5, -0.2]],
+    dtype=np.float64,
+)
 connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
 
 c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 2, shape=(nodes.shape[1],)))
@@ -89,16 +94,15 @@ domain = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 3, 3)
 
 def inspect_mesh(shared_facet: bool = False):
     from mpi4py import MPI
+
     import dolfinx
+
     ghost_mode = dolfinx.mesh.GhostMode.shared_facet if shared_facet else dolfinx.mesh.GhostMode.none
-    domain = dolfinx.mesh.create_unit_square(
-        MPI.COMM_WORLD, 3, 3, ghost_mode=ghost_mode)
+    domain = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 3, 3, ghost_mode=ghost_mode)
     topology = domain.topology
     tdim = topology.dim
-    print(
-        f"Number of cells in process: {topology.index_map(tdim).size_local}", flush=True)
-    print(
-        f"Number of shared cells: {topology.index_map(tdim).num_ghosts}", flush=True)
+    print(f"Number of cells in process: {topology.index_map(tdim).size_local}", flush=True)
+    print(f"Number of shared cells: {topology.index_map(tdim).num_ghosts}", flush=True)
     print(f"Global range {topology.index_map(tdim).local_range}")
     cell_to_vertices = topology.connectivity(tdim, 0)
     print(cell_to_vertices)

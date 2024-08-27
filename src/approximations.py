@@ -16,18 +16,21 @@
 # the left hand side is constant. Thus, it would make sense to only assemble the matrix once.
 # Following this, we create a general projector class
 
-import dolfinx.fem.function
-import pyvista
-import numpy as np
-import dolfinx
-import dolfinx.fem.petsc
-from mpi4py import MPI
-import ufl
-from petsc4py import PETSc
 from typing import Optional
 
+from mpi4py import MPI
+from petsc4py import PETSc
 
-class Projector():
+import numpy as np
+import pyvista
+
+import dolfinx
+import dolfinx.fem.function
+import dolfinx.fem.petsc
+import ufl
+
+
+class Projector:
     """
     Projector for a given function.
     Solves Ax=b, where
@@ -56,12 +59,14 @@ class Projector():
     _x: dolfinx.fem.Function  # The solution vector
     _dx: ufl.Measure  # Integration measure
 
-    def __init__(self,
-                 space: dolfinx.fem.FunctionSpace,
-                 petsc_options: Optional[dict] = None,
-                 jit_options: Optional[dict] = None,
-                 form_compiler_options: Optional[dict] = None,
-                 metadata: Optional[dict] = None):
+    def __init__(
+        self,
+        space: dolfinx.fem.FunctionSpace,
+        petsc_options: Optional[dict] = None,
+        jit_options: Optional[dict] = None,
+        form_compiler_options: Optional[dict] = None,
+        metadata: Optional[dict] = None,
+    ):
         petsc_options = {} if petsc_options is None else petsc_options
         jit_options = {} if jit_options is None else jit_options
         form_compiler_options = {} if form_compiler_options is None else form_compiler_options
@@ -71,8 +76,7 @@ class Projector():
         v = ufl.TestFunction(space)
         self._dx = ufl.Measure("dx", domain=space.mesh, metadata=metadata)
         a = ufl.inner(u, v) * self._dx(metadata=metadata)
-        self._lhs = dolfinx.fem.form(a, jit_options=jit_options,
-                                     form_compiler_options=form_compiler_options)
+        self._lhs = dolfinx.fem.form(a, jit_options=jit_options, form_compiler_options=form_compiler_options)
         self._A = dolfinx.fem.petsc.assemble_matrix(self._lhs)
         self._A.assemble()
 
@@ -98,8 +102,8 @@ class Projector():
         # Set matrix and vector PETSc options
         self._A.setOptionsPrefix(prefix)
         self._A.setFromOptions()
-        self._b.vector.setOptionsPrefix(prefix)
-        self._b.vector.setFromOptions()
+        self._b.x.petsc_vec.setOptionsPrefix(prefix)
+        self._b.x.petsc_vec.setFromOptions()
 
     def reassemble_lhs(self):
         dolfinx.fem.petsc.assemble_matrix(self._A, self._lhs)
@@ -112,12 +116,10 @@ class Projector():
         v = ufl.TestFunction(self._b.function_space)
         rhs = ufl.inner(h, v) * self._dx
         rhs_compiled = dolfinx.fem.form(rhs)
-        self._b.x.array[:] = 0.
-        dolfinx.fem.petsc.assemble_vector(self._b.vector, rhs_compiled)
-        self._b.vector.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES,
-                                   mode=PETSc.ScatterMode.REVERSE)
-        self._b.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-                                   mode=PETSc.ScatterMode.FORWARD)
+        self._b.x.array[:] = 0.0
+        dolfinx.fem.petsc.assemble_vector(self._b.x.petsc_vec, rhs_compiled)
+        self._b.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
+        self._b.x.petsc_vec.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
     def project(self, h: ufl.core.expr.Expr) -> dolfinx.fem.Function:
         """
@@ -127,12 +129,13 @@ class Projector():
             assemble_rhs: Re-assemble RHS and re-apply boundary conditions if true
         """
         self.assemble_rhs(h)
-        self._ksp.solve(self._b.vector, self._x.vector)
+        self._ksp.solve(self._b.x.petsc_vec, self._x.x.petsc_vec)
         return self._x
-    
+
     def __del__(self):
         self._A.destroy()
         self._ksp.destroy()
+
 
 # With this class, we can send in any expression written in the unified form language to the projector,
 # and then generate code for the right hand side assembly, and then solve the linear system.
@@ -151,7 +154,8 @@ class Projector():
 
 def h(mesh: dolfinx.mesh.Mesh):
     x = ufl.SpatialCoordinate(mesh)
-    return ufl.conditional(ufl.lt(x[0], 0.1*ufl.pi), ufl.cos(ufl.pi*x[0]), -ufl.sin(x[0]))
+    return ufl.conditional(ufl.lt(x[0], 0.1 * ufl.pi), ufl.cos(ufl.pi * x[0]), -ufl.sin(x[0]))
+
 
 # # Interpolation of functions and  UFL-expressions
 
@@ -171,8 +175,7 @@ compiled_h.eval(mesh, np.array([0], dtype=np.int32))
 # We can also interpolate functions from an expression into any suitable function space by calling
 
 V = dolfinx.fem.functionspace(mesh, ("Discontinuous Lagrange", 2))
-compiled_h_for_V = dolfinx.fem.Expression(
-    h(mesh), V.element.interpolation_points())
+compiled_h_for_V = dolfinx.fem.Expression(h(mesh), V.element.interpolation_points())
 
 # # Comparison of continuous and discontinuous Lagrange
 
@@ -182,8 +185,7 @@ mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 20)
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 
 
-V_projector = Projector(
-    V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+V_projector = Projector(V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
 uh = V_projector.project(h(V.mesh))
 
 pyvista.start_xvfb(1.0)
@@ -192,8 +194,7 @@ pyvista.start_xvfb(1.0)
 
 
 def plot_1D_scalar_function(u: dolfinx.fem.Function, title: str):
-    u_grid = pyvista.UnstructuredGrid(
-        *dolfinx.plot.vtk_mesh(u.function_space))
+    u_grid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(u.function_space))
     u_grid.point_data["u"] = u.x.array
     warped = u_grid.warp_by_scalar()
     plotter = pyvista.Plotter()
@@ -211,8 +212,7 @@ plot_1D_scalar_function(uh, "First order Lagrange")
 W = dolfinx.fem.functionspace(mesh, ("DG", 1))
 
 
-W_projector = Projector(
-    W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+W_projector = Projector(W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
 wh = W_projector.project(h(W.mesh))
 
 
@@ -226,11 +226,9 @@ for N in [50, 100, 200]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
     V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
     W = dolfinx.fem.functionspace(mesh, ("DG", 1))
-    V_projector = Projector(
-        V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    V_projector = Projector(V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     uh = V_projector.project(h(V.mesh))
-    W_projector = Projector(
-        W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    W_projector = Projector(W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     wh = W_projector.project(h(W.mesh))
     # Lagrange
     plot_1D_scalar_function(uh, f"First order Lagrange ({N})")
@@ -245,26 +243,23 @@ for N in [50, 100, 200]:
 
 def h_aligned(mesh: dolfinx.mesh.Mesh):
     x = ufl.SpatialCoordinate(mesh)
-    return ufl.conditional(ufl.lt(x[0], 0.2), ufl.cos(ufl.pi*x[0]), -ufl.sin(x[0]))
+    return ufl.conditional(ufl.lt(x[0], 0.2), ufl.cos(ufl.pi * x[0]), -ufl.sin(x[0]))
 
 
 for N in [20, 40, 80]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
     V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
     W = dolfinx.fem.functionspace(mesh, ("DG", 1))
-    V_projector = Projector(
-        V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    V_projector = Projector(V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     uh = V_projector.project(h_aligned(V.mesh))
-    W_projector = Projector(
-        W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    W_projector = Projector(W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     wh = W_projector.project(h_aligned(W.mesh))
 
     # Lagrange
     plot_1D_scalar_function(uh, f"Aligned first order Lagrange ({N})")
 
     # Discontinuous Lagrange
-    plot_1D_scalar_function(
-        wh, f"Aligned first order discontinuous Lagrange ({N})")
+    plot_1D_scalar_function(wh, f"Aligned first order discontinuous Lagrange ({N})")
 
 # ## Exercises
 #
