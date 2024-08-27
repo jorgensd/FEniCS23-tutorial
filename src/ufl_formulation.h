@@ -42,6 +42,12 @@ extern ufcx_integral integral_444ae3de485a81d987c5e8c21247536bf812e211;
 
 extern ufcx_integral integral_5fffa26f3a123822642449d4060dea801aa7395e;
 
+extern ufcx_integral integral_a4d8fe62dda09ce6724ce059e74e904d4bd52e37;
+
+extern ufcx_integral integral_d56ed0e51f05990612aefc038f84305ea26dfddf;
+
+extern ufcx_integral integral_c1ae3309d678abadd58a103e0b7b79546b6901c0;
+
 extern ufcx_form form_90f642a9a6a793322d73d559b0f550b853e94484;
 
 // Helper used to create form using name which was given to the
@@ -67,6 +73,45 @@ extern ufcx_form* form_ufl_formulation_L;
 // i.e. name of the Python variable.
 //
 ufcx_function_space* functionspace_form_ufl_formulation_L(const char* function_name);
+
+extern ufcx_form form_fb985c24c02d857284bfab55ff4d10c361d30b23;
+
+// Helper used to create form using name which was given to the
+// form in the UFL file.
+// This helper is called in user c++ code.
+//
+extern ufcx_form* form_ufl_formulation_Jh;
+
+// Helper used to create function space using function name
+// i.e. name of the Python variable.
+//
+ufcx_function_space* functionspace_form_ufl_formulation_Jh(const char* function_name);
+
+extern ufcx_form form_e3876fe9f5004dea04e02322ae63e3844239eca1;
+
+// Helper used to create form using name which was given to the
+// form in the UFL file.
+// This helper is called in user c++ code.
+//
+extern ufcx_form* form_ufl_formulation_dJhdu;
+
+// Helper used to create function space using function name
+// i.e. name of the Python variable.
+//
+ufcx_function_space* functionspace_form_ufl_formulation_dJhdu(const char* function_name);
+
+extern ufcx_form form_c4024f01a0a5ae5a7121220c2ad487daf11f2eb4;
+
+// Helper used to create form using name which was given to the
+// form in the UFL file.
+// This helper is called in user c++ code.
+//
+extern ufcx_form* form_ufl_formulation_dFdu_adj;
+
+// Helper used to create function space using function name
+// i.e. name of the Python variable.
+//
+ufcx_function_space* functionspace_form_ufl_formulation_dFdu_adj(const char* function_name);
 
 #ifdef __cplusplus
 }

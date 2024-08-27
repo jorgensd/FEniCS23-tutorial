@@ -6,7 +6,7 @@ author: Jørgen S. Dokken
 copyright: "2023"
 
 execute:
-  execute_notebooks: cache
+  execute_notebooks: force
 
 only_build_toc_files: true
 

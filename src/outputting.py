@@ -5,8 +5,12 @@
 
 # + tags=["hide-input"]
 from IPython.display import IFrame
-IFrame("https://defelement.com/lists/implementations/basix.ufl.html",
-       width=900, height=1000)
+
+IFrame(
+    "https://defelement.com/lists/implementations/basix.ufl.html",
+    width=900,
+    height=1000,
+)
 # -
 
 # Many of these elements have functionals that are not point evaluations, and

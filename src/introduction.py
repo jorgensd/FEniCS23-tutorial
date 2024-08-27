@@ -1,19 +1,56 @@
-# + [markdown] editable=true slideshow={"slide_type": "slide"}
-# # Choosing and using a finite element
-# As seen in DOLFINx in general, we use the unified form language (UFL) to
-# define variational forms.
-# The power of this domain specific language is that it resembles mathematical
-# syntax.
+# # Recap of the finite element method
+# The finite element method is a way of representing a function $u$ in a function space $V$, given $u$
+# satisfies a certain partial differential equation.
 #
-# We will start with a standard problem, namely a projection:
-# \begin{align}
-# u &= \frac{f(x,y,z)}{g(x,y,z)} \qquad \text{in } \Omega\subset \mathbb{R}^3.
-# \end{align}
-# where $\Omega$ is our computational domain, $f$ and $g$ are two known functions.
+# In this tutorial, we will keep to function spaces
+# $V\subset H^{1}(\Omega)$, $H^1(\Omega):=\{u\in L^2(\Omega) \text{ and } \nabla u\in L^2(\Omega)\}$.
 #
-# + [markdown] slideshow={"slide_type": "slide"}
-# ## Finite elements
-# + [markdown] slideshow={"slide_type": "skip"}
+# Next, we choose a finite subset of functions in $H^1(\Omega)$, and we call this the finite element space.
+# This means that any function in $V$ can be represented as a linear combination of these basis functions
+#
+# $$u\in V \Leftrightarrow u(x) = \sum_{i=1}^{N} u_i \phi_i(x),$$
+#
+# where $N$ are the number of basis functions, $\phi_i$ is the $i$-th basis function and $u_i$ are the coefficients.
+#
+# How the basis functions of interest are chosen is often dependent on the physical problem at hand.
+#
+# The general idea of the finite element method is to sub-divide the computational domain into
+# smaller (polygonal) elements $K_j$ such that
+# 1) The triangulation covers $\Omega$: $\cup_{j=1}^{M}K_j=\bar{\Omega}$
+# 2) No overlapping polyons: $\mathrm{int} K_i \cap \mathrm{int} K_j=\emptyset$ for $i\neq j$.
+# 3) No vertex lines in the interior of a facet or edge of another element
+#
+# We will call our polygonal domain $\mathcal{K}={K_j}_{j=1}^{M}$.
+# Next, we define a reference element $K_{ref}$, which is a simple polygon that we can map to any element $K_j$,
+# using the mapping $F_j:K_{ref}\mapsto K_j$.
+#
+# We define the Jacobian of this mapping as $\mathbf{J_j}$.
+#
+# ## Selecting a discrete function space
+# Once we have subdivided $\Omega$ into elements $K$, we can define a discrete function space $V_h$:
+#
+# $$V_h=\{v \in H^1(\mathcal{K})\}.$$
+#
+# Certain finite elements need to conserve certain properties (0-valued normals components of facets, etc).
+# We define this map as: $(\mathcal{F}_j(\phi))(x)$.
+#
+# For the finite elements we will consider in this tutorial, we will use the map
+#
+# $$(\mathcal{F}_j(\phi))(x) = \hat\phi(F_j^{-1}(x)).$$
+#
+# where $\hat\phi$ is the basis function on the reference element.
+# In other words, to evaluate the basis function in a point in the physical space, we pull the point back
+# to the reference element evaluate our local basis function at this point
+#
+# Thus, we can write out the evaluation of a finite element function as
+#
+# $$u(x)=\sum_{i=1}^N u_i\phi_i(F_j^{-1}(x)).$$
+#
+# For more advanced maps, see for instance:
+# [DefElement - vector valued basis functions](https://defelement.com/ciarlet.html#Vector-valued+basis+functions).
+#
+# # Creating a finite element in FEniCSx
+#
 # To solve this problem, we have to choose an appropriate finite element space to represent the function $k$ and $u$.
 # There is a large variety of finite elements, for instance the
 # [Lagrange elements](https://defelement.com/elements/lagrange.html).
@@ -49,8 +86,9 @@ element = basix.ufl.element("Lagrange", "triangle", 1)
 # We call this tabulation and we use the `tabulate` method of the element object.
 # The two input arguments are:
 # 1) The number of spatial derivatives of the basis functions we want to compute.
-# 2) A set of input points to evaluate the basis functions at as a numpy array of shape
-# # `(num_points, reference_cell_dimension)`.
+# 2) A set of input points to evaluate the basis functions at as
+# a numpy array of shape `(num_points, reference_cell_dimension)`.
+#
 # In this case, we want to compute the basis functions themselves, so we set the first argument to 0.
 
 points = np.array([[0.0, 0.5], [1, 0]], dtype=np.float64)

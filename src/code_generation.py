@@ -1,4 +1,3 @@
-
 # # Code generation
 # All the code in the previous section is Python code symbolically describing the variational form of the projection.
 
@@ -12,9 +11,11 @@
 # The previous section of the tutorial can be found in the file `introduction.py`.
 # We can use the FFCx main module to generate C code for all the objects in this file
 
-import ffcx.main
-from pathlib import Path
 import os
+from pathlib import Path
+
+import ffcx.main
+
 cwd = Path.cwd()
 infile = cwd / "ufl_formulation.py"
 

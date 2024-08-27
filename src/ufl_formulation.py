@@ -1,6 +1,20 @@
-# # A complete variational form
-# The aim of this section is to formulate a fully symbolic variational formulation for the projection problem
-# given in the [Problem Specification](./problem_specification).
+# # The Unified Form Language
+# We have previously seen how to define a finite element, and evaluate its basis functions in points on the
+# reference element. However, in this course we aim to solve problems from solid mechanics.
+# Thus, we need more than the basis functions to efficiently solve the problems at hand.
+# In this section, we will introduce the unified form language (UFL), which is a domain-specific language for
+# defining variational formulations for partial differential equations.
+# The goal of this section is to be able to solve the following problem:
+#
+# Given to function $f$ and $g$, compute the approximation of $\frac{f}{g}$ in a specified finite
+# element space.
+# Mathematically, we can write
+#
+# Find $u\in V(\Omega)$ such that
+# \begin{align}
+# u &= \frac{f(x,y,z)}{g(x,y,z)} \qquad \text{in } \Omega\subset \mathbb{R}^3.
+# \end{align}
+#
 # We start by focusing on the computational domain $\Omega$,
 
 # ## The computational domain
@@ -62,10 +76,9 @@ L = (f / g) * v * ufl.dx
 forms = [a, L]
 
 # So far, so good?
-# As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx` 
+# As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx`
 # or made a reference to the actual computational domain we want to solve the problem on or what `f` or `g` is,
 # except for the choice of function spaces.
-
 
 # ## Further analysis of the variational form
 # To do so, we would define each of the functions as the linear
@@ -100,3 +113,54 @@ pulled_back_L = ufl.algorithms.compute_form_data(
     preserve_geometry_types=(ufl.classes.Jacobian,),
 )
 print(pulled_back_L.integral_data[0])
+
+
+# # Functionals and derivatives
+# In the unified form language, we can also compute the derivatives of the variational form with respect to coefficients.
+# This is essential for efficient implementations of optimization and inverse problems.
+# We start by defining a functional
+#
+# $$J_h(u_h) = \int_\Omega \sigma(u_h): \epsilon(u_h)~\mathrm{d}x,$$
+#
+# where $\sigma$ is the stress tensor, $\epsilon$ is the symmetric strain tensor and $u_h$ a displacement field.
+#
+# We start by defining these quantities in UFL:
+
+# The function space for displacement
+
+el = basix.ufl.element("Lagrange", cell, 1, shape=(2,))
+Vh = ufl.FunctionSpace(domain, el)
+uh = ufl.Coefficient(Vh)
+
+# Lame's elasticity parameters
+
+mu = ufl.Constant(domain)
+lmbda = ufl.Constant(domain)
+
+# The stress and strain tensor
+
+
+def epsilon(u):
+    return ufl.sym(ufl.grad(u))
+
+
+def sigma(u):
+    return 2 * mu * epsilon(u) + lmbda * ufl.tr(epsilon(u)) * ufl.Identity(len(u))
+
+
+# The functional
+
+Jh = ufl.inner(sigma(uh), epsilon(uh)) * ufl.dx
+
+# Usually, a functional in itself isn't very interesting, but we can compute the derivative of the functional with respect to the displacement field.
+
+dJhdu = ufl.derivative(Jh, uh)
+
+# Given the equations of linear elasticity, we coould also compute the adjoint of the derivative of the residual with respect to the displacement field.,
+# This is needed for solving the adjoint equations in optimization problems.
+
+vh = ufl.TestFunction(Vh)
+F = ufl.inner(sigma(uh), epsilon(vh)) * ufl.dx
+dFdu_adj = ufl.adjoint(ufl.derivative(F, uh))
+
+forms = [a, L, Jh, dJhdu, dFdu_adj]

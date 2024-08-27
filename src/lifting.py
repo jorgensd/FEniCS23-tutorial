@@ -18,72 +18,73 @@
 # clamping at the right end and no traction boundary conditions on all other boundaries.
 
 from mpi4py import MPI
-import dolfinx
-import dolfinx.fem.petsc
-import numpy as np
-import ufl
 from petsc4py import PETSc
 
-L, W, H, = 10., 3., 3.
+import numpy as np
+
+import dolfinx
+import dolfinx.fem.petsc
+import ufl
+
+(
+    L,
+    W,
+    H,
+) = 10.0, 3.0, 3.0
 mesh = dolfinx.mesh.create_box(
-    MPI.COMM_WORLD, [[0., 0., 0.], [L, W, H]],
-    [15, 7, 7], cell_type=dolfinx.mesh.CellType.hexahedron)
+    MPI.COMM_WORLD,
+    [[0.0, 0.0, 0.0], [L, W, H]],
+    [15, 7, 7],
+    cell_type=dolfinx.mesh.CellType.hexahedron,
+)
 tdim = mesh.topology.dim
 
 # + tags=["hide-output"]
-V = dolfinx.fem.functionspace(mesh, ("Lagrange", 2, (mesh.geometry.dim, )))
+V = dolfinx.fem.functionspace(mesh, ("Lagrange", 2, (mesh.geometry.dim,)))
 # -
 
 # # Define boundaries
 # We start by locate the various facets for the different boundary conditions.
 # First, we find all boundary facets (those facets that are connected to only one cell)
 
-mesh.topology.create_connectivity(tdim-1, tdim)
+mesh.topology.create_connectivity(tdim - 1, tdim)
 boundary_facets = dolfinx.mesh.exterior_facet_indices(mesh.topology)
 
 # Next we find those facets that should be clamped, and those that should have a non-zero traction on it.
 
 
 def left_facets(x):
-    return np.isclose(x[0], 0.)
+    return np.isclose(x[0], 0.0)
 
 
-clamped_facets = dolfinx.mesh.locate_entities_boundary(
-    mesh, tdim-1,
-    left_facets)
-prescribed_facets = dolfinx.mesh.locate_entities_boundary(
-    mesh, tdim-1,
-    lambda x: np.isclose(x[0], L))
+clamped_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, left_facets)
+prescribed_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, lambda x: np.isclose(x[0], L))
 
 # As all mesh entities are represented as integers, we can find the boundary facets by
 # remaining facets using numpy set operations
 
 
-free_facets = np.setdiff1d(
-    boundary_facets,
-    np.union1d(clamped_facets, prescribed_facets))
+free_facets = np.setdiff1d(boundary_facets, np.union1d(clamped_facets, prescribed_facets))
 
 # Next, we can define a meshtag object for all the facets in the mesh
 
-num_facets = mesh.topology.index_map(tdim-1).size_local
+num_facets = mesh.topology.index_map(tdim - 1).size_local
 markers = np.zeros(num_facets, dtype=np.int32)
 markers[clamped_facets] = 1
 markers[prescribed_facets] = 2
 markers[free_facets] = 3
-facet_marker = dolfinx.mesh.meshtags(
-    mesh, tdim-1,
-    np.arange(num_facets, dtype=np.int32), markers)
+facet_marker = dolfinx.mesh.meshtags(mesh, tdim - 1, np.arange(num_facets, dtype=np.int32), markers)
 
 
 # # Variational formulation
 
 x = ufl.SpatialCoordinate(mesh)
-T_0 = dolfinx.fem.Constant(mesh, (0., 0., 0.))
+T_0 = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
 E = dolfinx.fem.Constant(mesh, 1.4e3)
 nu = dolfinx.fem.Constant(mesh, 0.3)
 mu = E / (2.0 * (1.0 + nu))
 lmbda = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
-f = dolfinx.fem.Constant(mesh, (0., 0., 0.))
+f = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
 
 
 def epsilon(u):
@@ -107,27 +108,29 @@ L_compiled = dolfinx.fem.form(L)
 # ## Dirichlet conditions
 # We start by finding all dofs associated with the facets marked with each of the Dirichlet conditions
 
-clamped_dofs = dolfinx.fem.locate_dofs_topological(
-    V, tdim-1, clamped_facets)
-displaced_dofs = dolfinx.fem.locate_dofs_topological(
-    V, tdim-1, prescribed_facets)
+clamped_dofs = dolfinx.fem.locate_dofs_topological(V, tdim - 1, clamped_facets)
+displaced_dofs = dolfinx.fem.locate_dofs_topological(V, tdim - 1, prescribed_facets)
 
 # Next, we define the prescribed displacement
 # $u_D(L,y,z)=(0,0,W/4)$
 
-u_prescribed = dolfinx.fem.Constant(mesh, (0., 0., H/4))
-u_clamped = dolfinx.fem.Constant(mesh, (0., 0.0, 0.))
+u_prescribed = dolfinx.fem.Constant(mesh, (0.0, 0.0, H / 4))
+u_clamped = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
 
 # We define the Dirichlet boundary condition object as
 
-bcs = [dolfinx.fem.dirichletbc(u_clamped, clamped_dofs, V),
-       dolfinx.fem.dirichletbc(u_prescribed, displaced_dofs, V)]
+bcs = [
+    dolfinx.fem.dirichletbc(u_clamped, clamped_dofs, V),
+    dolfinx.fem.dirichletbc(u_prescribed, displaced_dofs, V),
+]
 
 # In most situations, you would just pass this object to the linear problem and it would be handled for you
-petsc_options = {"ksp_type": "preonly",
-                 "pc_type": "lu", "pc_factor_mat_solver_type": "mumps"}
-problem = dolfinx.fem.petsc.LinearProblem(
-    a, L, bcs=bcs, petsc_options=petsc_options)
+petsc_options = {
+    "ksp_type": "preonly",
+    "pc_type": "lu",
+    "pc_factor_mat_solver_type": "mumps",
+}
+problem = dolfinx.fem.petsc.LinearProblem(a, L, bcs=bcs, petsc_options=petsc_options)
 u = problem.solve()
 u.x.scatter_forward()
 
@@ -188,8 +191,7 @@ for bc in bcs:
 b = dolfinx.fem.petsc.assemble_vector(L_compiled)
 b.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
 dolfinx.fem.petsc.set_bc(b, bcs)
-b.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-              mode=PETSc.ScatterMode.FORWARD)
+b.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 # Then we could define a PETSc Krylov subspace solver
 uh = dolfinx.fem.Function(V)
@@ -199,8 +201,7 @@ solver.setType(PETSc.KSP.Type.PREONLY)
 solver.getPC().setType(PETSc.PC.Type.LU)
 solver.getPC().setFactorSolverType("mumps")
 solver.solve(b, uh.vector)
-uh.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-                      mode=PETSc.ScatterMode.FORWARD)
+uh.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 # We can check that we get the same solution
 
@@ -273,23 +274,19 @@ b_lifting = dolfinx.fem.petsc.assemble_vector(L_compiled)
 # 3. `apply_lifting`, i.e subtract $A_{d,bc}g$ from the vector
 
 dolfinx.fem.petsc.apply_lifting(b_lifting, [a_compiled], bcs=[bcs])
-b_lifting.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES,
-                      mode=PETSc.ScatterMode.REVERSE)
+b_lifting.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
 
 # 4. `set_bc`, i.e set the degrees of freedom for known dofs
 
 dolfinx.fem.petsc.set_bc(b_lifting, bcs)
-b_lifting.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-                      mode=PETSc.ScatterMode.FORWARD)
+b_lifting.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
-print(
-    f"Matrix is symmetric after lifting assembly: {A_lifting.isSymmetric(1e-5)}")
+print(f"Matrix is symmetric after lifting assembly: {A_lifting.isSymmetric(1e-5)}")
 
 solver.setOperators(A_lifting)
 u_lifted = dolfinx.fem.Function(V)
 solver.solve(b_lifting, u_lifted.vector)
-u_lifted.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-                            mode=PETSc.ScatterMode.FORWARD)
+u_lifted.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 assert np.allclose(u_lifted.x.array, uh.x.array)
 
@@ -317,12 +314,10 @@ A.assemble()
 b_new = dolfinx.fem.petsc.assemble_vector(dolfinx.fem.form(L_lifted))
 # -
 dolfinx.fem.petsc.set_bc(b_new, bcs)
-b_new.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-                  mode=PETSc.ScatterMode.FORWARD)
+b_new.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 solver.setOperators(A)
 u_new = dolfinx.fem.Function(V)
 solver.solve(b_lifting, u_new.vector)
-u_new.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES,
-                         mode=PETSc.ScatterMode.FORWARD)
+u_new.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 assert np.allclose(u_new.x.array, u.x.array)
