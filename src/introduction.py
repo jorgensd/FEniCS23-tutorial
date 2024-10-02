@@ -208,7 +208,7 @@ fig = plot_basis_functions(element, 15)
 
 # We also illustrate the procedure on a second order Lagrange element on a quadrilateral, as discussed above.
 
-second_order_element = basix.ufl.element("Lagrange", "triangle", 2, basix.LagrangeVariant.gll_warped)
+second_order_element = basix.ufl.element("Lagrange", "quadrilateral", 2, basix.LagrangeVariant.gll_warped)
 fig = plot_basis_functions(second_order_element, 12)
 
 
