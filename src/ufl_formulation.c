@@ -23,39 +23,6 @@
 
 
 
-// Code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
-
-
-
-
-
-
-ufcx_finite_element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
-{
-  .signature = "Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
-  .cell_shape = triangle,
-  .element_type = ufcx_basix_element,
-  .topological_dimension = 2,
-  .space_dimension = 1,
-  .reference_value_rank = 0,
-  .reference_value_shape = NULL,
-  .reference_value_size = 1,
-  .degree = 0,
-  .symmetric = false,
-  .block_size = 1,
-  .basix_family = 1,
-  .basix_cell = 2,
-  .discontinuous = true,
-  .lagrange_variant = 2,
-  .dpc_variant = 0,
-  .num_sub_elements = 0,
-  .sub_elements = NULL,
-  .custom_element = NULL,
-  .custom_quadrature = NULL
-};
-
-// End of code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
-
 // Code for element element_e60371328a49148d7039c103115050855ae79a18
 
 
@@ -155,33 +122,38 @@ ufcx_finite_element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e =
 
 // End of code for element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
 
-// Code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+// Code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
 
 
 
-int entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
 
-int entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
 
-int entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
 
-int entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
-
-ufcx_dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
+ufcx_finite_element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
 {
-  .signature = "FFCx dofmap for Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
-  .num_global_support_dofs = 0,
-  .num_element_support_dofs = 1,
+  .signature = "Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
+  .cell_shape = triangle,
+  .element_type = ufcx_basix_element,
+  .topological_dimension = 2,
+  .space_dimension = 1,
+  .reference_value_rank = 0,
+  .reference_value_shape = NULL,
+  .reference_value_size = 1,
+  .degree = 0,
+  .symmetric = false,
   .block_size = 1,
-  .entity_dofs = entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .entity_dof_offsets = entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .entity_closure_dofs = entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .entity_closure_dof_offsets = entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .num_sub_dofmaps = 0,
-  .sub_dofmaps = NULL
+  .basix_family = 1,
+  .basix_cell = 2,
+  .discontinuous = true,
+  .lagrange_variant = 2,
+  .dpc_variant = 0,
+  .num_sub_elements = 0,
+  .sub_elements = NULL,
+  .custom_element = NULL,
+  .custom_quadrature = NULL
 };
 
-// End of code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+// End of code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
 
 // Code for dofmap dofmap_e60371328a49148d7039c103115050855ae79a18
 
@@ -267,6 +239,34 @@ ufcx_dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e =
 
 // End of code for dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
 
+// Code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+
+
+
+int entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
+
+int entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
+
+int entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
+
+int entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
+
+ufcx_dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
+{
+  .signature = "FFCx dofmap for Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
+  .num_global_support_dofs = 0,
+  .num_element_support_dofs = 1,
+  .block_size = 1,
+  .entity_dofs = entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .entity_dof_offsets = entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .entity_closure_dofs = entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .entity_closure_dof_offsets = entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .num_sub_dofmaps = 0,
+  .sub_dofmaps = NULL
+};
+
+// End of code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+
 // Code for integral integral_444ae3de485a81d987c5e8c21247536bf812e211
 
 void tabulate_tensor_integral_444ae3de485a81d987c5e8c21247536bf812e211(double* restrict A,
@@ -290,8 +290,8 @@ static const double FE2_C0_Q39d[1][1][6][6] = {{{{-0.07480380774819603, 0.517632
   {-0.08473049309397794, -0.04820837781551188, -0.04820837781551195, 0.7954802262009061, 0.1928335112620479, 0.1928335112620479}}}};
 // ------------------------ 
 // Section: Jacobian
-// Inputs: coordinate_dofs, FE1_C0_D10_Q39d, FE1_C1_D01_Q39d
-// Outputs: J_c1, J_c0, J_c2, J_c3
+// Inputs: FE1_C1_D01_Q39d, FE1_C0_D10_Q39d, coordinate_dofs
+// Outputs: J_c0, J_c3, J_c2, J_c1
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -324,7 +324,7 @@ for (int iq = 0; iq < 6; ++iq)
   // ------------------------ 
   // ------------------------ 
   // Section: Tensor Computation
-  // Inputs: FE2_C0_Q39d, fw0
+  // Inputs: fw0, FE2_C0_Q39d
   // Outputs: A
   {
     double temp_0[6] = {0};
@@ -373,14 +373,14 @@ void tabulate_tensor_integral_5fffa26f3a123822642449d4060dea801aa7395e(double* r
 static const double weights_7a4[6] = {0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.08333333333333333};
 // Precomputed values of basis functions and precomputations
 // FE* dimensions: [permutation][entities][points][dofs]
-static const double FE1_C0_Q7a4[1][1][6][3] = {{{{0.1090390090728771, 0.659027622374092, 0.231933368553031},
+static const double FE0_C0_Q7a4[1][1][6][3] = {{{{0.1090390090728771, 0.659027622374092, 0.231933368553031},
   {0.2319333685530311, 0.659027622374092, 0.109039009072877},
   {0.109039009072877, 0.231933368553031, 0.6590276223740918},
   {0.6590276223740921, 0.231933368553031, 0.109039009072877},
   {0.231933368553031, 0.109039009072877, 0.6590276223740918},
   {0.6590276223740921, 0.1090390090728769, 0.231933368553031}}}};
-static const double FE2_C0_D10_Q7a4[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
-static const double FE2_C1_D01_Q7a4[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
+static const double FE1_C0_D10_Q7a4[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
+static const double FE1_C1_D01_Q7a4[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
 static const double FE3_C0_Q7a4[1][1][6][6] = {{{{-0.08525999807368716, 0.2096071917300056, -0.1243471936563188, 0.6114019857068721, 0.1011591387118275, 0.2874388755813007},
   {-0.1243471936563188, 0.2096071917300055, -0.08525999807368713, 0.2874388755813008, 0.1011591387118276, 0.6114019857068723},
   {-0.0852599980736872, -0.1243471936563187, 0.2096071917300056, 0.6114019857068721, 0.2874388755813007, 0.1011591387118275},
@@ -389,8 +389,8 @@ static const double FE3_C0_Q7a4[1][1][6][6] = {{{{-0.08525999807368716, 0.209607
   {0.2096071917300057, -0.08525999807368712, -0.1243471936563187, 0.1011591387118275, 0.6114019857068722, 0.2874388755813007}}}};
 // ------------------------ 
 // Section: Jacobian
-// Inputs: FE2_C0_D10_Q7a4, coordinate_dofs, FE2_C1_D01_Q7a4
-// Outputs: J_c1, J_c0, J_c2, J_c3
+// Inputs: FE1_C1_D01_Q7a4, FE1_C0_D10_Q7a4, coordinate_dofs
+// Outputs: J_c0, J_c3, J_c2, J_c1
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -398,10 +398,10 @@ double J_c2 = 0.0;
 {
   for (int ic = 0; ic < 3; ++ic)
   {
-    J_c0 += coordinate_dofs[(ic) * 3] * FE2_C0_D10_Q7a4[0][0][0][ic];
-    J_c3 += coordinate_dofs[(ic) * 3 + 1] * FE2_C1_D01_Q7a4[0][0][0][ic];
-    J_c1 += coordinate_dofs[(ic) * 3] * FE2_C1_D01_Q7a4[0][0][0][ic];
-    J_c2 += coordinate_dofs[(ic) * 3 + 1] * FE2_C0_D10_Q7a4[0][0][0][ic];
+    J_c0 += coordinate_dofs[(ic) * 3] * FE1_C0_D10_Q7a4[0][0][0][ic];
+    J_c3 += coordinate_dofs[(ic) * 3 + 1] * FE1_C1_D01_Q7a4[0][0][0][ic];
+    J_c1 += coordinate_dofs[(ic) * 3] * FE1_C1_D01_Q7a4[0][0][0][ic];
+    J_c2 += coordinate_dofs[(ic) * 3 + 1] * FE1_C0_D10_Q7a4[0][0][0][ic];
   }
 }
 // ------------------------ 
@@ -414,13 +414,13 @@ for (int iq = 0; iq < 6; ++iq)
 {
   // ------------------------ 
   // Section: Coefficient
-  // Inputs: FE1_C0_Q7a4, w
+  // Inputs: w, FE0_C0_Q7a4
   // Outputs: w1
   double w1 = 0.0;
   {
     for (int ic = 0; ic < 3; ++ic)
     {
-      w1 += w[1 + (ic)] * FE1_C0_Q7a4[0][0][iq][ic];
+      w1 += w[1 + (ic)] * FE0_C0_Q7a4[0][0][iq][ic];
     }
   }
   // ------------------------ 
@@ -482,8 +482,8 @@ static const double FE1_C0_D10_Q083[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
 static const double FE1_C1_D01_Q083[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
 // ------------------------ 
 // Section: Coefficient
-// Inputs: FE1_C0_D10_Q083, FE1_C1_D01_Q083, w
-// Outputs: w0_d01_c1, w0_d10_c0, w0_d10_c1, w0_d01_c0
+// Inputs: w, FE1_C0_D10_Q083, FE1_C1_D01_Q083
+// Outputs: w0_d01_c0, w0_d01_c1, w0_d10_c1, w0_d10_c0
 double w0_d01_c1 = 0.0;
 double w0_d10_c1 = 0.0;
 double w0_d10_c0 = 0.0;
@@ -500,8 +500,8 @@ double w0_d01_c0 = 0.0;
 // ------------------------ 
 // ------------------------ 
 // Section: Jacobian
-// Inputs: FE1_C0_D10_Q083, coordinate_dofs, FE1_C1_D01_Q083
-// Outputs: J_c1, J_c0, J_c2, J_c3
+// Inputs: FE1_C1_D01_Q083, coordinate_dofs, FE1_C0_D10_Q083
+// Outputs: J_c0, J_c3, J_c2, J_c1
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -615,8 +615,8 @@ static const double FE1_C0_D10_Q083[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
 static const double FE1_C1_D01_Q083[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
 // ------------------------ 
 // Section: Coefficient
-// Inputs: FE1_C0_D10_Q083, FE1_C1_D01_Q083, w
-// Outputs: w0_d01_c1, w0_d10_c0, w0_d10_c1, w0_d01_c0
+// Inputs: w, FE1_C0_D10_Q083, FE1_C1_D01_Q083
+// Outputs: w0_d01_c0, w0_d01_c1, w0_d10_c1, w0_d10_c0
 double w0_d01_c1 = 0.0;
 double w0_d10_c1 = 0.0;
 double w0_d10_c0 = 0.0;
@@ -633,8 +633,8 @@ double w0_d01_c0 = 0.0;
 // ------------------------ 
 // ------------------------ 
 // Section: Jacobian
-// Inputs: FE1_C0_D10_Q083, coordinate_dofs, FE1_C1_D01_Q083
-// Outputs: J_c1, J_c0, J_c2, J_c3
+// Inputs: FE1_C1_D01_Q083, coordinate_dofs, FE1_C0_D10_Q083
+// Outputs: J_c0, J_c3, J_c2, J_c1
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -777,7 +777,7 @@ for (int iq = 0; iq < 1; ++iq)
   // ------------------------ 
   // ------------------------ 
   // Section: Tensor Computation
-  // Inputs: FE1_C0_D10_Q083, fw3, fw2, fw0, fw1, FE1_C1_D01_Q083
+  // Inputs: fw2, FE1_C1_D01_Q083, fw1, fw0, FE1_C0_D10_Q083, fw3
   // Outputs: A
   {
     for (int i = 0; i < 3; ++i)
@@ -825,8 +825,8 @@ static const double FE1_C0_D10_Q083[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
 static const double FE1_C1_D01_Q083[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
 // ------------------------ 
 // Section: Jacobian
-// Inputs: FE1_C0_D10_Q083, coordinate_dofs, FE1_C1_D01_Q083
-// Outputs: J_c1, J_c0, J_c2, J_c3
+// Inputs: FE1_C1_D01_Q083, coordinate_dofs, FE1_C0_D10_Q083
+// Outputs: J_c0, J_c3, J_c2, J_c1
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -1004,7 +1004,7 @@ for (int iq = 0; iq < 1; ++iq)
   // ------------------------ 
   // ------------------------ 
   // Section: Tensor Computation
-  // Inputs: fw14, FE1_C0_D10_Q083, fw6, fw3, fw15, fw2, fw0, fw1, fw5, fw10, fw13, FE1_C1_D01_Q083, fw7, fw11, fw4, fw12, fw8, fw9
+  // Inputs: fw10, fw2, FE1_C1_D01_Q083, fw4, fw1, fw14, fw0, fw8, FE1_C0_D10_Q083, fw15, fw7, fw12, fw9, fw6, fw13, fw3, fw5, fw11
   // Outputs: A
   {
     double temp_0[3] = {0};

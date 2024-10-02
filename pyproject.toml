@@ -2,9 +2,9 @@
 requires = ["setuptools>=64.4.0", "wheel", "pip>=22.3"]
 
 [project]
-name = "FEniCS23"
+name = "FEniCS_Sorbonne"
 version = "0.8.0"
-description = "Tutorial for FENiCS 2023"
+description = "Tutorial for FENiCS at Sorbonne University"
 authors = [{ name = "Jørgen S. Dokken", email = "dokken@simula.no" }]
 license = { file = "LICENSE" }
 readme = "README.md"
