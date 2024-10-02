@@ -1,5 +1,5 @@
 # (launch:thebe)=
-# # Defining a finite element
+# # Defining a finite element ({term}`FE`)
 #
 # The finite element method is a way of representing a function $u$ in a function space $V$, given $u$
 # satisfies a certain partial differential equation.
@@ -121,8 +121,8 @@
 
 #
 # To symbolically represent this element, we use `basix.ufl.element`,
-# that creates a representation of a finite element using [Basix](https://docs.fenicsproject.org/basix/v0.8.0/),
-# which in turn can be used in the [Unified Form Language (UFL)](https://docs.fenicsproject.org/ufl/2024.1.0.post1).
+# that creates a representation of a finite element using {term}`Basix`,
+# which in turn can be used in the {term}`UFL`.
 
 # + 
 import numpy as np
@@ -137,7 +137,7 @@ element = basix.ufl.element("Lagrange", "triangle", 1)
 #
 
 # Next, we will evaluate the basis functions at a certain set of `points` in the reference triangle.
-# We call this tabulation and we use the `tabulate` method of the element object.
+# We call this {term}`tabulation` and we use the `tabulate` method of the element object.
 # The two input arguments are:
 # 1) The number of spatial derivatives of the basis functions we want to compute.
 # 2) A set of input points to evaluate the basis functions at as

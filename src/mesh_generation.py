@@ -1,41 +1,5 @@
 # # Mesh generation
 #
-# The general idea of the finite element method is to sub-divide the computational domain into
-# smaller (polygonal) elements $K_j$ such that
-# 1) The triangulation covers $\Omega$: $\cup_{j=1}^{M}K_j=\bar{\Omega}$
-# 2) No overlapping polyons: $\mathrm{int} K_i \cap \mathrm{int} K_j=\emptyset$ for $i\neq j$.
-# 3) No vertex lines in the interior of a facet or edge of another element
-#
-# We will call our polygonal domain $\mathcal{K}={K_j}_{j=1}^{M}$.
-# Next, we define a reference element $K_{ref}$, which is a simple polygon that we can map to any element $K_j$,
-# using the mapping $F_j:K_{ref}\mapsto K_j$.
-#
-# We define the Jacobian of this mapping as $\mathbf{J_j}$.
-#
-# ## Selecting a discrete function space
-# Once we have subdivided $\Omega$ into elements $K$, we can define a discrete function space $V_h$:
-#
-# $$V_h=\{v \in H^1(\mathcal{K})\}.$$
-#
-# Certain finite elements need to conserve certain properties (0-valued normals components of facets, etc).
-# We define this map as: $(\mathcal{F}_j(\phi))(x)$.
-#
-# For the finite elements we will consider in this tutorial, we will use the map
-#
-# $$(\mathcal{F}_j(\phi))(x) = \hat\phi(F_j^{-1}(x)).$$
-#
-# where $\hat\phi$ is the basis function on the reference element.
-# In other words, to evaluate the basis function in a point in the physical space, we pull the point back
-# to the reference element evaluate our local basis function at this point
-#
-# Thus, we can write out the evaluation of a finite element function as
-#
-# $$u(x)=\sum_{i=1}^N u_i\phi_i(F_j^{-1}(x)).$$
-#
-# For more advanced maps, see for instance:
-# [DefElement - vector valued basis functions](https://defelement.com/ciarlet.html#Vector-valued+basis+functions).
-#
-#
 # So far, we have covered how to generate code for the local element assembly.
 # We can now look into how to solve specific problems.
 # Let us start with generating the computational domain.
