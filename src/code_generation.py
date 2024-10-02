@@ -19,8 +19,10 @@ import ffcx.main
 cwd = Path.cwd()
 infile = cwd / "ufl_formulation.py"
 
+# + tags=["remove-output"]
 ffcx.main.main(["-o", str(cwd), "--visualise", str(infile)])
 
+# -
 # This computes the computational graph of the bi-linear and linear form
 # ## Bilinear graph
 # ![Bilinear graph](S_a.png)
