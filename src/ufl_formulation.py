@@ -269,11 +269,11 @@ def epsilon(u):
     return ufl.sym(ufl.grad(u))
 
 
-# We define the stiffness tensor using Einstein summation notation
-# We start by defining the identity tensor which we will use as a
-# kronecker delta function.
-# Next we define four indices that we will use to account for the four dimensions of the#
-# stiffness tensor.
+# We define the stiffness tensor using [Einstein summation notation](https://mathworld.wolfram.com/EinsteinSummation.html).
+# We start by defining the identity tensor which we will use as a [Kronecker Delta](https://mathworld.wolfram.com/KroneckerDelta.html)
+# function.
+# Next we define four indices that we will use to account for the four dimensions of the stiffness tensor.
+
 Id = ufl.Identity(domain.geometric_dimension())
 indices = ufl.indices(4)
 
@@ -306,18 +306,47 @@ Jh = 0.5 * ufl.inner(sigma(uh), epsilon(uh)) * ufl.dx - ufl.inner(f, uh) * ufl.d
 
 F = ufl.derivative(Jh, uh)
 
+# Since we want to find the minimum of the functional, we set the derivative to zero.
+# To solve this problem, we can for instance use a Newton method, where we solve a sequence of equations:
+#
+# $$ u_{k+1} = u_k - J_F(u_k)^{-1}F(u_k),$$
+#
+# where $J_F$ is the Jacobian matrix of $F$.
+# We can rewrite this as:
+#
+# $$
+# \begin{align}
+# u_{k+1} &= u_k - \delta u_k\\
+# J_F(u_k)\delta u_k &= F(u_k)
+# \end{align}
+# $$
+#
+# Which boils down to solving a linear system of equations for $\delta u_k$.
+#
+# We can compute the Jacobian using UFL:
+
+J_F = ufl.derivative(F, uh)
+
+# And with this and $F$ we can solve the minimization problem.
+# See for instance:
+# [Custom Newton Solver in DOLFINx](https://jsdokken.com/dolfinx-tutorial/chapter4/newton-solver.html)
+# for more details about how you could implement this method by hand.
+#
 # # Extra material: Optimization problems with PDE constraints
 #
 # Another class of optimization problems is the so-called PDE-constrained optimization problems.
 # For these problems, one usually have a problem on the form
 #
-# $\min_{c}J_h(u_h, c)$ such that $F(u_h,c)=0$.
+# $$\min_{c}J_h(u_h, c)$$
+#
+# such that
+#
+# $$F(u_h,c)=0.$$
 #
 # We can use the adjoint method to compute the sensitivity of the functional with respect to the solution of the PDE.
-#
 # This is done by introducing the Lagrangian
 #
-# $\min_{c}\mathcal{L}(u_h, c) = J_h(u_h,c) + (\lambda, F(u_h,c))$.
+# $$\min_{c}\mathcal{L}(u_h, c) = J_h(u_h,c) + (\lambda, F(u_h,c)).$$
 #
 # We now seek the minimum of the Lagrangian, i.e.
 #
