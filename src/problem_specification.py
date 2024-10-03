@@ -7,7 +7,7 @@
 # \int_\Omega uv~\mathrm{d}x = \int_\Omega \frac{f}{g}v~\mathrm{d}x\quad \forall v \in V.
 # $$
 
-# # Creating a simple mesh in {term}`DOLFINx``
+# # Creating a simple mesh in {term}`DOLFINx`
 # As you might have seen in other FEniCSx tutorials, there are some "built-in" meshes in DOLFINx.
 # In this tutorial, we will use a unit square, consisting of triangular elements, where we have 10
 # elements in each direction.
