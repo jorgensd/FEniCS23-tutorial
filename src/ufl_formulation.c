@@ -23,72 +23,6 @@
 
 
 
-// Code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
-
-
-
-
-
-
-ufcx_finite_element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
-{
-  .signature = "Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
-  .cell_shape = triangle,
-  .element_type = ufcx_basix_element,
-  .topological_dimension = 2,
-  .space_dimension = 1,
-  .reference_value_rank = 0,
-  .reference_value_shape = NULL,
-  .reference_value_size = 1,
-  .degree = 0,
-  .symmetric = false,
-  .block_size = 1,
-  .basix_family = 1,
-  .basix_cell = 2,
-  .discontinuous = true,
-  .lagrange_variant = 2,
-  .dpc_variant = 0,
-  .num_sub_elements = 0,
-  .sub_elements = NULL,
-  .custom_element = NULL,
-  .custom_quadrature = NULL
-};
-
-// End of code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
-
-// Code for element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
-
-
-
-
-
-
-ufcx_finite_element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e =
-{
-  .signature = "Basix element (P, triangle, 2, gll_warped, unset, True, float64, [])",
-  .cell_shape = triangle,
-  .element_type = ufcx_basix_element,
-  .topological_dimension = 2,
-  .space_dimension = 6,
-  .reference_value_rank = 0,
-  .reference_value_shape = NULL,
-  .reference_value_size = 1,
-  .degree = 2,
-  .symmetric = false,
-  .block_size = 1,
-  .basix_family = 1,
-  .basix_cell = 2,
-  .discontinuous = true,
-  .lagrange_variant = 2,
-  .dpc_variant = 0,
-  .num_sub_elements = 0,
-  .sub_elements = NULL,
-  .custom_element = NULL,
-  .custom_quadrature = NULL
-};
-
-// End of code for element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
-
 // Code for element element_e60371328a49148d7039c103115050855ae79a18
 
 
@@ -155,61 +89,71 @@ ufcx_finite_element element_9c6cd84bfc267751ad970123baa9b98e3391e3e7 =
 
 // End of code for element element_9c6cd84bfc267751ad970123baa9b98e3391e3e7
 
-// Code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+// Code for element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
 
 
 
-int entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
 
-int entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
 
-int entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
 
-int entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
-
-ufcx_dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
+ufcx_finite_element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e =
 {
-  .signature = "FFCx dofmap for Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
-  .num_global_support_dofs = 0,
-  .num_element_support_dofs = 1,
+  .signature = "Basix element (P, triangle, 2, gll_warped, unset, True, float64, [])",
+  .cell_shape = triangle,
+  .element_type = ufcx_basix_element,
+  .topological_dimension = 2,
+  .space_dimension = 6,
+  .reference_value_rank = 0,
+  .reference_value_shape = NULL,
+  .reference_value_size = 1,
+  .degree = 2,
+  .symmetric = false,
   .block_size = 1,
-  .entity_dofs = entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .entity_dof_offsets = entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .entity_closure_dofs = entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .entity_closure_dof_offsets = entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
-  .num_sub_dofmaps = 0,
-  .sub_dofmaps = NULL
+  .basix_family = 1,
+  .basix_cell = 2,
+  .discontinuous = true,
+  .lagrange_variant = 2,
+  .dpc_variant = 0,
+  .num_sub_elements = 0,
+  .sub_elements = NULL,
+  .custom_element = NULL,
+  .custom_quadrature = NULL
 };
 
-// End of code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+// End of code for element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
 
-// Code for dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
+// Code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
 
 
 
-int entity_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[6] = {0, 1, 2, 3, 4, 5};
 
-int entity_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[8] = {0, 0, 0, 0, 0, 0, 0, 6};
 
-int entity_closure_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[6] = {0, 1, 2, 3, 4, 5};
 
-int entity_closure_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[8] = {0, 0, 0, 0, 0, 0, 0, 6};
-
-ufcx_dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e =
+ufcx_finite_element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
 {
-  .signature = "FFCx dofmap for Basix element (P, triangle, 2, gll_warped, unset, True, float64, [])",
-  .num_global_support_dofs = 0,
-  .num_element_support_dofs = 6,
+  .signature = "Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
+  .cell_shape = triangle,
+  .element_type = ufcx_basix_element,
+  .topological_dimension = 2,
+  .space_dimension = 1,
+  .reference_value_rank = 0,
+  .reference_value_shape = NULL,
+  .reference_value_size = 1,
+  .degree = 0,
+  .symmetric = false,
   .block_size = 1,
-  .entity_dofs = entity_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
-  .entity_dof_offsets = entity_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
-  .entity_closure_dofs = entity_closure_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
-  .entity_closure_dof_offsets = entity_closure_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
-  .num_sub_dofmaps = 0,
-  .sub_dofmaps = NULL
+  .basix_family = 1,
+  .basix_cell = 2,
+  .discontinuous = true,
+  .lagrange_variant = 2,
+  .dpc_variant = 0,
+  .num_sub_elements = 0,
+  .sub_elements = NULL,
+  .custom_element = NULL,
+  .custom_quadrature = NULL
 };
 
-// End of code for dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
+// End of code for element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
 
 // Code for dofmap dofmap_e60371328a49148d7039c103115050855ae79a18
 
@@ -267,6 +211,62 @@ ufcx_dofmap dofmap_9c6cd84bfc267751ad970123baa9b98e3391e3e7 =
 
 // End of code for dofmap dofmap_9c6cd84bfc267751ad970123baa9b98e3391e3e7
 
+// Code for dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
+
+
+
+int entity_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[6] = {0, 1, 2, 3, 4, 5};
+
+int entity_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[8] = {0, 0, 0, 0, 0, 0, 0, 6};
+
+int entity_closure_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[6] = {0, 1, 2, 3, 4, 5};
+
+int entity_closure_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e[8] = {0, 0, 0, 0, 0, 0, 0, 6};
+
+ufcx_dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e =
+{
+  .signature = "FFCx dofmap for Basix element (P, triangle, 2, gll_warped, unset, True, float64, [])",
+  .num_global_support_dofs = 0,
+  .num_element_support_dofs = 6,
+  .block_size = 1,
+  .entity_dofs = entity_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
+  .entity_dof_offsets = entity_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
+  .entity_closure_dofs = entity_closure_dofs_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
+  .entity_closure_dof_offsets = entity_closure_dof_offsets_dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e,
+  .num_sub_dofmaps = 0,
+  .sub_dofmaps = NULL
+};
+
+// End of code for dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e
+
+// Code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+
+
+
+int entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
+
+int entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
+
+int entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[1] = {0};
+
+int entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe[8] = {0, 0, 0, 0, 0, 0, 0, 1};
+
+ufcx_dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe =
+{
+  .signature = "FFCx dofmap for Basix element (P, triangle, 0, gll_warped, unset, True, float64, [])",
+  .num_global_support_dofs = 0,
+  .num_element_support_dofs = 1,
+  .block_size = 1,
+  .entity_dofs = entity_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .entity_dof_offsets = entity_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .entity_closure_dofs = entity_closure_dofs_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .entity_closure_dof_offsets = entity_closure_dof_offsets_dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe,
+  .num_sub_dofmaps = 0,
+  .sub_dofmaps = NULL
+};
+
+// End of code for dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe
+
 // Code for integral integral_444ae3de485a81d987c5e8c21247536bf812e211
 
 void tabulate_tensor_integral_444ae3de485a81d987c5e8c21247536bf812e211(double* restrict A,
@@ -280,18 +280,18 @@ void tabulate_tensor_integral_444ae3de485a81d987c5e8c21247536bf812e211(double* r
 static const double weights_39d[6] = {0.054975871827661, 0.054975871827661, 0.054975871827661, 0.1116907948390055, 0.1116907948390055, 0.1116907948390055};
 // Precomputed values of basis functions and precomputations
 // FE* dimensions: [permutation][entities][points][dofs]
-static const double FE0_C0_Q39d[1][1][6][6] = {{{{-0.07480380774819603, 0.5176323419876736, -0.07480380774819671, 0.2992152309927871, 0.03354481152314834, 0.2992152309927839},
+static const double FE1_C0_D10_Q39d[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
+static const double FE1_C1_D01_Q39d[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
+static const double FE2_C0_Q39d[1][1][6][6] = {{{{-0.07480380774819603, 0.5176323419876736, -0.07480380774819671, 0.2992152309927871, 0.03354481152314834, 0.2992152309927839},
   {-0.07480380774819613, -0.0748038077481966, 0.5176323419876735, 0.2992152309927871, 0.2992152309927838, 0.03354481152314828},
   {0.5176323419876713, -0.0748038077481967, -0.07480380774819674, 0.03354481152314866, 0.2992152309927869, 0.2992152309927868},
   {-0.04820837781551195, -0.08473049309397784, -0.04820837781551192, 0.1928335112620479, 0.7954802262009061, 0.1928335112620478},
   {-0.04820837781551193, -0.048208377815512, -0.08473049309397786, 0.1928335112620479, 0.192833511262048, 0.7954802262009062},
   {-0.08473049309397794, -0.04820837781551188, -0.04820837781551195, 0.7954802262009061, 0.1928335112620479, 0.1928335112620479}}}};
-static const double FE2_C0_D10_Q39d[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
-static const double FE2_C1_D01_Q39d[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
 // ------------------------ 
 // Section: Jacobian
-// Inputs: FE2_C1_D01_Q39d, coordinate_dofs, FE2_C0_D10_Q39d
-// Outputs: J_c1, J_c3, J_c0, J_c2
+// Inputs: FE1_C1_D01_Q39d, FE1_C0_D10_Q39d, coordinate_dofs
+// Outputs: J_c1, J_c2, J_c0, J_c3
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -299,10 +299,10 @@ double J_c2 = 0.0;
 {
   for (int ic = 0; ic < 3; ++ic)
   {
-    J_c0 += coordinate_dofs[(ic) * 3] * FE2_C0_D10_Q39d[0][0][0][ic];
-    J_c3 += coordinate_dofs[(ic) * 3 + 1] * FE2_C1_D01_Q39d[0][0][0][ic];
-    J_c1 += coordinate_dofs[(ic) * 3] * FE2_C1_D01_Q39d[0][0][0][ic];
-    J_c2 += coordinate_dofs[(ic) * 3 + 1] * FE2_C0_D10_Q39d[0][0][0][ic];
+    J_c0 += coordinate_dofs[(ic) * 3] * FE1_C0_D10_Q39d[0][0][0][ic];
+    J_c3 += coordinate_dofs[(ic) * 3 + 1] * FE1_C1_D01_Q39d[0][0][0][ic];
+    J_c1 += coordinate_dofs[(ic) * 3] * FE1_C1_D01_Q39d[0][0][0][ic];
+    J_c2 += coordinate_dofs[(ic) * 3 + 1] * FE1_C0_D10_Q39d[0][0][0][ic];
   }
 }
 // ------------------------ 
@@ -324,19 +324,19 @@ for (int iq = 0; iq < 6; ++iq)
   // ------------------------ 
   // ------------------------ 
   // Section: Tensor Computation
-  // Inputs: FE0_C0_Q39d, fw0
+  // Inputs: fw0, FE2_C0_Q39d
   // Outputs: A
   {
     double temp_0[6] = {0};
     for (int j = 0; j < 6; ++j)
     {
-      temp_0[j] = fw0 * FE0_C0_Q39d[0][0][iq][j];
+      temp_0[j] = fw0 * FE2_C0_Q39d[0][0][iq][j];
     }
     for (int j = 0; j < 6; ++j)
     {
       for (int i = 0; i < 6; ++i)
       {
-        A[6 * (i) + (j)] += FE0_C0_Q39d[0][0][iq][i] * temp_0[j];
+        A[6 * (i) + (j)] += FE2_C0_Q39d[0][0][iq][i] * temp_0[j];
       }
     }
   }
@@ -373,24 +373,24 @@ void tabulate_tensor_integral_c8c7cee93b610bf40fb284d1c05d7b02fd51f3b6(double* r
 static const double weights_7a4[6] = {0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.08333333333333333, 0.08333333333333333};
 // Precomputed values of basis functions and precomputations
 // FE* dimensions: [permutation][entities][points][dofs]
-static const double FE0_C0_Q7a4[1][1][6][6] = {{{{-0.08525999807368716, 0.2096071917300056, -0.1243471936563188, 0.6114019857068721, 0.1011591387118275, 0.2874388755813007},
-  {-0.1243471936563188, 0.2096071917300055, -0.08525999807368713, 0.2874388755813008, 0.1011591387118276, 0.6114019857068723},
-  {-0.0852599980736872, -0.1243471936563187, 0.2096071917300056, 0.6114019857068721, 0.2874388755813007, 0.1011591387118275},
-  {0.2096071917300056, -0.1243471936563188, -0.08525999807368713, 0.1011591387118276, 0.2874388755813008, 0.6114019857068723},
-  {-0.1243471936563188, -0.08525999807368707, 0.2096071917300056, 0.2874388755813007, 0.6114019857068721, 0.1011591387118275},
-  {0.2096071917300057, -0.08525999807368712, -0.1243471936563187, 0.1011591387118275, 0.6114019857068722, 0.2874388755813007}}}};
-static const double FE2_C0_Q7a4[1][1][6][3] = {{{{0.1090390090728771, 0.659027622374092, 0.231933368553031},
+static const double FE0_C0_Q7a4[1][1][6][3] = {{{{0.1090390090728771, 0.659027622374092, 0.231933368553031},
   {0.2319333685530311, 0.659027622374092, 0.109039009072877},
   {0.109039009072877, 0.231933368553031, 0.6590276223740918},
   {0.6590276223740921, 0.231933368553031, 0.109039009072877},
   {0.231933368553031, 0.109039009072877, 0.6590276223740918},
   {0.6590276223740921, 0.1090390090728769, 0.231933368553031}}}};
-static const double FE3_C0_D10_Q7a4[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
-static const double FE3_C1_D01_Q7a4[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
+static const double FE1_C0_D10_Q7a4[1][1][1][3] = {{{{-1.0, 1.0, 0.0}}}};
+static const double FE1_C1_D01_Q7a4[1][1][1][3] = {{{{-1.0, 0.0, 1.0}}}};
+static const double FE2_C0_Q7a4[1][1][6][6] = {{{{-0.08525999807368716, 0.2096071917300056, -0.1243471936563188, 0.6114019857068721, 0.1011591387118275, 0.2874388755813007},
+  {-0.1243471936563188, 0.2096071917300055, -0.08525999807368713, 0.2874388755813008, 0.1011591387118276, 0.6114019857068723},
+  {-0.0852599980736872, -0.1243471936563187, 0.2096071917300056, 0.6114019857068721, 0.2874388755813007, 0.1011591387118275},
+  {0.2096071917300056, -0.1243471936563188, -0.08525999807368713, 0.1011591387118276, 0.2874388755813008, 0.6114019857068723},
+  {-0.1243471936563188, -0.08525999807368707, 0.2096071917300056, 0.2874388755813007, 0.6114019857068721, 0.1011591387118275},
+  {0.2096071917300057, -0.08525999807368712, -0.1243471936563187, 0.1011591387118275, 0.6114019857068722, 0.2874388755813007}}}};
 // ------------------------ 
 // Section: Jacobian
-// Inputs: FE3_C1_D01_Q7a4, FE3_C0_D10_Q7a4, coordinate_dofs
-// Outputs: J_c1, J_c3, J_c0, J_c2
+// Inputs: FE1_C1_D01_Q7a4, coordinate_dofs, FE1_C0_D10_Q7a4
+// Outputs: J_c1, J_c2, J_c0, J_c3
 double J_c0 = 0.0;
 double J_c3 = 0.0;
 double J_c1 = 0.0;
@@ -398,10 +398,10 @@ double J_c2 = 0.0;
 {
   for (int ic = 0; ic < 3; ++ic)
   {
-    J_c0 += coordinate_dofs[(ic) * 3] * FE3_C0_D10_Q7a4[0][0][0][ic];
-    J_c3 += coordinate_dofs[(ic) * 3 + 1] * FE3_C1_D01_Q7a4[0][0][0][ic];
-    J_c1 += coordinate_dofs[(ic) * 3] * FE3_C1_D01_Q7a4[0][0][0][ic];
-    J_c2 += coordinate_dofs[(ic) * 3 + 1] * FE3_C0_D10_Q7a4[0][0][0][ic];
+    J_c0 += coordinate_dofs[(ic) * 3] * FE1_C0_D10_Q7a4[0][0][0][ic];
+    J_c3 += coordinate_dofs[(ic) * 3 + 1] * FE1_C1_D01_Q7a4[0][0][0][ic];
+    J_c1 += coordinate_dofs[(ic) * 3] * FE1_C1_D01_Q7a4[0][0][0][ic];
+    J_c2 += coordinate_dofs[(ic) * 3 + 1] * FE1_C0_D10_Q7a4[0][0][0][ic];
   }
 }
 // ------------------------ 
@@ -414,13 +414,13 @@ for (int iq = 0; iq < 6; ++iq)
 {
   // ------------------------ 
   // Section: Coefficient
-  // Inputs: w, FE2_C0_Q7a4
+  // Inputs: w, FE0_C0_Q7a4
   // Outputs: w1
   double w1 = 0.0;
   {
     for (int ic = 0; ic < 3; ++ic)
     {
-      w1 += w[1 + (ic)] * FE2_C0_Q7a4[0][0][iq][ic];
+      w1 += w[1 + (ic)] * FE0_C0_Q7a4[0][0][iq][ic];
     }
   }
   // ------------------------ 
@@ -437,12 +437,12 @@ for (int iq = 0; iq < 6; ++iq)
   // ------------------------ 
   // ------------------------ 
   // Section: Tensor Computation
-  // Inputs: FE0_C0_Q7a4, fw0
+  // Inputs: fw0, FE2_C0_Q7a4
   // Outputs: A
   {
     for (int i = 0; i < 6; ++i)
     {
-      A[(i)] += fw0 * FE0_C0_Q7a4[0][0][iq][i];
+      A[(i)] += fw0 * FE2_C0_Q7a4[0][0][iq][i];
     }
   }
   // ------------------------ 

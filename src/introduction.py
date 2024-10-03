@@ -103,7 +103,7 @@
 #
 # # Creating a finite element in FEniCSx
 #
-# There is a large variety of finite elements: [List of finite elements(https://defelement.com/elements/index.html).
+# There is a large variety of finite elements: [List of finite elements](https://defelement.com/elements/index.html).
 #
 # However, in today's lecture, we will focus on the [Lagrange elements](https://defelement.com/elements/lagrange.html).
 #
