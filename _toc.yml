@@ -21,3 +21,6 @@ parts:
     chapters:
       - file: "src/approximations.py"
       - file: "src/outputting.py"
+  - caption: Gloassary
+    chapters:
+      - file: "src/glossary.md"
