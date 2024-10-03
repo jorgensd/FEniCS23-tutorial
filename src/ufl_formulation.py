@@ -258,6 +258,7 @@ print(pulled_back_L.integral_data[0])
 el = basix.ufl.element("Lagrange", cell, 1, shape=(2,))
 Vh = ufl.FunctionSpace(domain, el)
 uh = ufl.Coefficient(Vh)
+f = ufl.Coefficient(Vh)
 
 # Lame's elasticity parameters
 
@@ -268,24 +269,40 @@ def epsilon(u):
     return ufl.sym(ufl.grad(u))
 
 
-# We define the stiffness tensor using index notation
-
+# We define the stiffness tensor using Einstein summation notation
+# We start by defining the identity tensor which we will use as a
+# kronecker delta function.
+# Next we define four indices that we will use to account for the four dimensions of the#
+# stiffness tensor.
+Id = ufl.Identity(domain.geometric_dimension())
 indices = ufl.indices(4)
-i, j, k, l = indices
-Identity = ufl.Identity(2)
-d_ij = Identity[i,j]
-d_kl = Identity[k,l]
-d_jl = Identity[j,l]
-d_ik = Identity[i,k]
-d_kj = Identity[k,j]
-d_il = Identity[i,l]
-C = lmbda*ufl.as_tensor(d_ij*d_kl, indices) + mu*(ufl.as_tensor(d_ik*d_jl, indices) + ufl.as_tensor(d_il*d_kj, indices))
 
-# We can then define the functional
+# Secondly we define the product of two delta functions $\delta_{ij}\delta_{kl}$
+# which results in a fourth order tensor.
 
-Jh = (C[i,j,k,l] * epsilon(uh)[k,l]) * epsilon(uh)[i,j] * ufl.dx
+def delta_product(i, j, k, l):
+    return ufl.as_tensor(Id[i, j] * Id[k, l], indices)
 
-# and get the derivative of the functional, equivalent to solving the problem of linear elasticity
+# Finally we define the Stiffness tensor
+i,j,k,l = indices
+C = lmbda * delta_product(i,j,k,l) + mu*(delta_product(i,k,j,l) + delta_product(i,l,k,j))
+
+# and the functional
+
+Jh = 0.5*(C[i,j,k,l] * epsilon(uh)[k,l]) * epsilon(uh)[i,j] * ufl.dx - ufl.inner(f, uh) * ufl.dx
+
+# This syntax is remarkably similar to how it is written on [paper](https://en.wikipedia.org/wiki/Elasticity_tensor).
+
+# ## Alternative formulation
+# Instead of writing out all the indices with Einstein notation, one could write the same equation as
+
+def sigma(u):
+    return lmbda * ufl.nabla_div(u) * ufl.Identity(len(u)) + 2 * mu * epsilon(u)
+
+Jh = 0.5 * ufl.inner(sigma(uh), epsilon(uh)) * ufl.dx - ufl.inner(f, uh) * ufl.dx
+
+# ## Differentiating the energy functional
+# We can differentiate the energy functional with respect to the displacement field $u_h$.
 
 F = ufl.derivative(Jh, uh)
 
