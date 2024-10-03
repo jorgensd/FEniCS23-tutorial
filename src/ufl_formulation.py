@@ -139,7 +139,7 @@ domain = ufl.Mesh(c_el)
 #
 # $$u(x)=\sum_{i=1}^N u_i\phi_i(F_j^{-1}(x)).$$
 #
-# As opposed some commercial software, we do not rely on iso-parameteric elements in FEniCS.
+# As opposed some commercial software, we do not rely on iso-parametric elements in FEniCS.
 # We can use any supported finite element space to describe our unknown `u`.
 #
 # For more advanced maps, see for instance:
