@@ -33,6 +33,7 @@
 #
 # We define the Jacobian of this mapping as $\mathbf{J_j}$.
 #
+# (straight_edge_triangle)=
 # ## Example: Straight edged triangle
 #
 # As we saw in [the section on finite elements](./introduction), we can use basix to get a
@@ -155,7 +156,6 @@ F = ufl.FunctionSpace(domain, basix.ufl.element("Discontinuous Lagrange", cell, 
 f = ufl.Coefficient(F)
 G = ufl.FunctionSpace(domain, basix.ufl.element("Lagrange", cell, 1))
 g = ufl.Coefficient(G)
-
 
 # ## The variational form
 #
