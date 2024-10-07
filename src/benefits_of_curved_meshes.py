@@ -1,0 +1,189 @@
+# # Integration measures
+# In this section we will cover how to compute different kinds of integrals in DOLFINx.
+# To illustrate this, we will use the mesh from {ref}`mesh_generation:eshelby`. where we saw that it is possible
+# to control the order of the underlying mesh elements using GMSH.
+# In this section we will see how this can be used to improve the accuracy of the solution.
+# We will also explore potential drawbacks.
+
+# First we create an easily customizable function based on the previous example
+
+from mpi4py import MPI
+import dolfinx
+import ufl
+import gmsh
+import numpy as np
+
+aspect_ratio = 0.5
+R_i = 0.3
+R_e = 0.8
+center = (0,0,0)
+
+
+def generate_mesh(resolution: float, order:int):
+    """Generate a mesh with a given minimal resolution of a given order."""
+    assert order >= 1
+    gmsh.initialize()
+    gmsh.model.add("eshelby")
+
+    inner_disk = gmsh.model.occ.addDisk(*center, R_i, aspect_ratio * R_i)
+    outer_disk = gmsh.model.occ.addDisk(*center, R_e, R_e)
+
+    _, map_to_input = gmsh.model.occ.fragment(
+                [(2, outer_disk)], [(2, inner_disk)]
+            )
+    gmsh.model.occ.synchronize()
+
+    circle_inner = [surface[1] for surface in map_to_input[1] if surface[0] == 2]
+    circle_outer = [surface[1] for surface in map_to_input[0] if surface[0] == 2 and surface[1] not in circle_inner]
+
+    gmsh.model.addPhysicalGroup(2, circle_inner, tag=3)
+    gmsh.model.addPhysicalGroup(2, circle_outer, tag=7)
+
+    inner_boundary = gmsh.model.getBoundary([(2, entity) for entity in circle_inner], recursive=False, oriented=False)
+    outer_boundary = gmsh.model.getBoundary([(2, entity) for entity in circle_outer], recursive=False, oriented=False)
+
+    interface = [boundary[1] for boundary in inner_boundary if boundary[0] == 1]
+    ext_boundary = [boundary[1] for boundary in outer_boundary if boundary[0] == 1 and boundary[1] not in interface]
+
+    gmsh.model.addPhysicalGroup(1, interface, tag=12)
+    gmsh.model.addPhysicalGroup(1, ext_boundary, tag=15)
+
+
+    gmsh.option.setNumber("Mesh.CharacteristicLengthMax", resolution)
+
+    gmsh.model.mesh.generate(2)
+    gmsh.model.mesh.setOrder(order)
+    mesh, cell_marker, facet_marker = dolfinx.io.gmshio.model_to_mesh(gmsh.model, MPI.COMM_WORLD, 0, gdim=2)
+    gmsh.finalize()
+    return mesh, cell_marker, facet_marker
+
+# # Integration over cells
+# We start by integrating over the cells of a (linear) mesh. For this, we can either use
+# `ufl.dx`, which is a UFL integration measure that indicates that we want to integrate
+# over all cells of a given domain.
+
+linear_mesh, lct, fct = generate_mesh(0.5, 1)
+dx = ufl.dx(domain=linear_mesh)
+
+# We can now compute the area of the domain by integrating the constant function 1 over the domain.
+one = ufl.constantvalue.IntValue(1)
+area = one * dx
+
+# We have above create a UFL form for the integral over the domain multiplied by a constant.
+# We now want to assemble this over the mesh.
+# This is done in a three step approach:
+# 1. Compile the form (generate code for the assemble process)
+# 2. Compute the local contribution of each cell owned by the current process
+# 3. Accumulate the local contributions across all processes.
+compiled_area = dolfinx.fem.form(area)
+local_area = dolfinx.fem.assemble_scalar(compiled_area)
+global_area = linear_mesh.comm.allreduce(local_area, op=MPI.SUM)
+
+# We can compare this to the area of the exact geometry
+A_ex = np.pi*R_e**2
+print(f"Area of the domain is {global_area}, expected {A_ex}\n", 
+      f"Relative error: {np.abs(global_area - A_ex)/A_ex*100:.2f}%")
+
+# We observe a small error in the total area of the circle, but what about the area of each subdomain?
+# We have that the area of the ellipsoid should be
+A_ex_inner = np.pi*R_i*aspect_ratio*R_i
+
+# # Integration over subdomains
+# In the mesh generation, we marked the ellipsoid with the value 3 and the remainder of the domain with the value 7.
+# We use the other outputs from `dolfinx.io.gmshio.model_to_mesh` to extract to access the subdomain information.
+# The second output of the function is a `dolfinx.mesh.MeshTags` object, consisting of a list of all cells in the
+# `linear_mesh` and its corresponding marker.
+# We can use this information within the a `ufl.Measure` to restrict the integration to a subdomain.
+
+dx_with_data = ufl.Measure("dx", domain=linear_mesh, subdomain_data=lct)
+
+
+# ```{note}
+# Remember that to call assemble on any form we need to multiply by an integration measure.
+# The supported measure types in DOLFINx is:
+# 1. `"dx"` - Integration over all cells in your mesh
+# 2. `"ds"` - Integration over all exterior facets in your mesh (All facets connected to only a single cell)
+# 3. `"dS"` - Integration over all interior facets in your mesh (All facets connected to two cells)
+# ```
+# We can now create a form which only integrates over the cells marked with the value 3 with the following syntax
+
+inner_area = dolfinx.fem.form(one*dx_with_data(3))
+
+# We can also pass multiple markers within the same measure restriction
+
+total_area = dolfinx.fem.form(one*dx_with_data((3, 7)))
+
+outer_area = dolfinx.fem.form(one*dx_with_data(7))
+
+# We can now assemble the forms as before.
+# Since we will do this many times in this demo, we create a convenience function
+
+def assemble(form: ufl.Form|dolfinx.fem.Form)->dolfinx.default_scalar_type:
+    compiled_form = dolfinx.fem.form(form)
+    local_form = dolfinx.fem.assemble_scalar(compiled_form)
+    return compiled_form.mesh.comm.allreduce(local_form, op=MPI.SUM)
+
+def relative_error(a, a_ex):
+    """Return the relative error in percent
+    :param a: The approximate value
+    :param a_ex: The exact value (cannot be 0)
+    :return: Relative error in percent
+    """
+    return np.abs(a - a_ex)/a_ex*100
+
+ellipsoid_area = assemble(inner_area)
+print(f"Number of elements: {linear_mesh.topology.index_map(linear_mesh.topology.dim).size_global}")
+print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
+      f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
+
+donut_area = assemble(outer_area)
+print(f"Outer area: {donut_area:.5e}, Exact: {global_area - A_ex_inner:.5e}\n",
+      f"Relative error: {relative_error(donut_area, A_ex-A_ex_inner):.2f}%")
+
+# We observe quite large errors in the area computations.
+# We could resolve this by refining the mesh.
+
+fine_linear_mesh, flct, ffct = generate_mesh(0.1, 1)
+dx_fine = ufl.Measure("dx", domain=fine_linear_mesh, subdomain_data=flct)
+
+inner_area = dolfinx.fem.form(one*dx_fine(3))
+outer_area = dolfinx.fem.form(one*dx_fine(7))
+
+ellipsoid_area = assemble(inner_area)
+donut_area = assemble(outer_area)
+print(f"Number of elements: {fine_linear_mesh.topology.index_map(fine_linear_mesh.topology.dim).size_global}")
+print(f"Area of the domain is {ellipsoid_area+donut_area:.5e}, expected {A_ex:.5e}\n", 
+      f"Relative error: {relative_error(ellipsoid_area+donut_area, A_ex):.2f}%")
+print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
+      f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
+print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
+      f"Relative error: {relative_error(donut_area, A_ex-A_ex_inner):.2f}%")
+
+# However, how fine of a mesh do we need if we use third order elements?
+
+curved_mesh, cct, cft = generate_mesh(0.5, 3)
+dx_curved = ufl.Measure("dx", domain=curved_mesh, subdomain_data=cct)
+
+inner_area = dolfinx.fem.form(one*dx_curved(3))
+outer_area = dolfinx.fem.form(one*dx_curved(7))
+ellipsoid_area = assemble(inner_area)
+donut_area = assemble(outer_area)
+print(f"Number of elements: {curved_mesh.topology.index_map(curved_mesh.topology.dim).size_global}")
+print(f"Area of the domain is {ellipsoid_area+donut_area:.5e}, expected {A_ex:.5e}\n", 
+      f"Relative error: {relative_error(ellipsoid_area+donut_area, A_ex):.2f}%")
+print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
+      f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
+print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
+      f"Relative error: {relative_error(donut_area, A_ex-A_ex_inner):.2f}%")
+
+# We observe that we get an extremely accurate estimate of the area.
+# Should we therefore always use higher order meshes?
+
+# A potential draw-back as we usually want a given resolution of our unknown $u_h$.
+# If we have a higher order mesh with very few linear elements, we can get a very
+# accurate geometry description, but the approximation to the {term}`PDE` might have large errors.
+# There is therefore a balancing act between using a high resolution grid and higher order elements.
+
+# # Exercise
+# 1. Do we really need a third order grid to represent the circular geometry accurately? Could we use a second order grid?
+# 2. What happens to the integral of the constant function 1 over the domain if we use a second order or third order grid?
