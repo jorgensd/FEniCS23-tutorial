@@ -33,6 +33,7 @@
 #
 # We define the Jacobian of this mapping as $\mathbf{J_j}$.
 #
+# (straight_edge_triangle)=
 # ## Example: Straight edged triangle
 #
 # As we saw in [the section on finite elements](./introduction), we can use basix to get a
@@ -156,10 +157,11 @@ f = ufl.Coefficient(F)
 G = ufl.FunctionSpace(domain, basix.ufl.element("Lagrange", cell, 1))
 g = ufl.Coefficient(G)
 
-
-# ## The variational form
+# (variational_form)=
+# ## The variational form of a projection
 #
-#```{note}
+#
+# ```{admonition} The finite element method and its links to minimization
 # Recall that the variational form is a way of writing the {term}`PDE` on a form that we can use to solve the problem with
 # {term}`FEM`.
 # We start by multiplying the equation with a test-function from a suitable space (in this case the same space as the solution)

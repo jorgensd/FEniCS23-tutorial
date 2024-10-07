@@ -1,34 +1,40 @@
-# # Projection and interpolation
+# # Approximation with continuous and discontinuous finite elements
 #
-# In [the introduction](./introduction), we considered the projection problem $u=\frac{f}{g}$ where $f$ and $g$ were some known functions.
-# However, there are many cases where derived quantities are of interest, including stress calculations such as von Mises stresses.
+# We introduced the notion of a projection in {ref}`variational_form` where we want to find the best
+# approximation of an expression in a finite element space.
 #
-# There are many ways of computing such quantities, and we have already covered how to set up a projection scheme
-# Find $u\in V_h$ such that
-# \begin{align}
-#   \int_\Omega u\cdot v~\mathrm{d}x = \int_\Omega h(g,f,x)\cdot v~\mathrm{d}x\qquad \forall v \in V_h.
-# \end{align}
-# where $g$ and $f$ are functions from some finite element space.
+# The goal of this section is to approximate
 #
+# $$
+# h(x) = \begin{cases} \cos(\pi x) \quad\text{if } x<\alpha\\
+# -\sin(x) \quad\text{otherwise} \end{cases}
+# $$
 #
-# ## Reusable projector
-# Imagine we want to solve a sequence of such post-processing steps for functions $f$ and $g$. If the mesh isn't changing between each projection,
-# the left hand side is constant. Thus, it would make sense to only assemble the matrix once.
-# Following this, we create a general projector class
+# where $\alpha$ is a pre-defined constant.
+# We will use `ufl.conditional` as explained in the [the previous section](./form_compilation).
 
-from typing import Optional
-
+# +
 from mpi4py import MPI
 from petsc4py import PETSc
-
-import numpy as np
-import pyvista
-
-import dolfinx
-import dolfinx.fem.function
 import dolfinx.fem.petsc
 import ufl
 
+def h(alpha, mesh: dolfinx.mesh.Mesh):
+    x = ufl.SpatialCoordinate(mesh)
+    return ufl.conditional(ufl.lt(x[0], alpha), ufl.cos(ufl.pi * x[0]), -ufl.sin(x[0]))
+# -
+
+# ## Reusable projector
+# Imagine we want to solve a sequence of such post-processing steps for functions $f$ and $g$.
+# If the mesh isn't changing between each projection, the left hand side is constant.
+# Thus, it would make sense to only assemble the matrix once.
+# Following this, we create a general projector class
+
+# +
+from typing import Optional
+
+import numpy as np
+import pyvista
 
 class Projector:
     """
@@ -135,131 +141,153 @@ class Projector:
     def __del__(self):
         self._A.destroy()
         self._ksp.destroy()
+# -
 
-
-# With this class, we can send in any expression written in the unified form language to the projector,
+# With this class, we can send in any expression written in {term}`UFL` to the projector,
 # and then generate code for the right hand side assembly, and then solve the linear system.
 # If we use LU factorization, most of the cost will be in the first projection, when the matrix is
 # factorized. This is then cached, so that the solution algorithm is reduced to solving to linear problems;
 # one upper diagonal matrix and one lower diagonal matrix.
 
-# ## Approximation with continuous and discontinuous finite elements
+# ## Non-aligning discontinuity
+# We will start considering the case where $\alpha$ is not aligned with the mesh.
+# We choose $\alpha = \frac{\pi}{5}$ and get the following $h$:
 #
-# We will try to approximate the following function
-#
-# $h(x) = \begin{cases} \cos(\pi x) \quad\text{if } x<\frac{\pi}{5}\\
+# $$
+# h(x) = \begin{cases} \cos(\pi x) \quad\text{if } x<\frac{\pi}{10}\\
 # -\sin(x) \quad\text{otherwise} \end{cases}
-# We will use `ufl.conditional` as explained in the [the previous section](./form_compilation).
+# $$
 
+from functools import partial
+h_nonaligned = partial(h, np.pi / 10)
 
-def h(mesh: dolfinx.mesh.Mesh):
-    x = ufl.SpatialCoordinate(mesh)
-    return ufl.conditional(ufl.lt(x[0], 0.1 * ufl.pi), ufl.cos(ufl.pi * x[0]), -ufl.sin(x[0]))
+# Let us now try to use the re-usable projector to approximate this function
 
-
-# # Interpolation of functions and  UFL-expressions
-
-# Above we have defined a function that is dependent on the spatial coordinates of `ufl`, and it is a purely symbolic expression.
-# If we want to evaluate this expression, either at a given point or interpolate it into a function space, we need to compile code
-# similar to the code generated with `dolfinx.fem.form` or calling FFCx. The main difference is that for an expression, there is no summation
-# over quadrature. To perform this compilation for a given point in the reference cell, we call
-
-
-mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 20)
-compiled_h = dolfinx.fem.Expression(h(mesh), np.array([0.5]))
-
-# We can now evaluate the expression at the point 0.5 in the reference element for any cell (this coordinate is then pushed forward to the given input cell).
-# For instance, we can evaluate this expression in the cell with index 0 with
-compiled_h.eval(mesh, np.array([0], dtype=np.int32))
-
-# We can also interpolate functions from an expression into any suitable function space by calling
-
-V = dolfinx.fem.functionspace(mesh, ("Discontinuous Lagrange", 2))
-compiled_h_for_V = dolfinx.fem.Expression(h(mesh), V.element.interpolation_points())
-
-# # Comparison of continuous and discontinuous Lagrange
-
-# Let us now test the code for a first order Lagrange space
-
-mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 20)
+Nx = 20
+mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, Nx)
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 
-
-V_projector = Projector(V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
-uh = V_projector.project(h(V.mesh))
-
-pyvista.start_xvfb(1.0)
-
-# Next, we plot the solution
-
-
-def plot_1D_scalar_function(u: dolfinx.fem.Function, title: str):
-    u_grid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(u.function_space))
-    u_grid.point_data["u"] = u.x.array
-    warped = u_grid.warp_by_scalar()
-    plotter = pyvista.Plotter()
-    plotter.add_title(title, font_size=12)
-    plotter.add_mesh(warped, style="wireframe")
-    plotter.show_axes()
-    plotter.view_xz()
-    plotter.show()
-
-
-plot_1D_scalar_function(uh, "First order Lagrange")
+petsc_options={"ksp_type": "preonly", "pc_type": "lu"}
+V_projector = Projector(V, petsc_options=petsc_options)
+uh = V_projector.project(h_nonaligned(V.mesh))
 
 # We can now repeat the study for a DG-1 function
 
 W = dolfinx.fem.functionspace(mesh, ("DG", 1))
+W_projector = Projector(W, petsc_options=petsc_options)
+wh = W_projector.project(h_nonaligned(W.mesh))
+
+# We compare the two solutions side by side
 
 
-W_projector = Projector(W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
-wh = W_projector.project(h(W.mesh))
+def warp_1D(u: dolfinx.fem.Function):
+    """Convenience function to warp a 1D function for visualization in pyvista"""
+    u_grid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(u.function_space))
+    u_grid.point_data["u"] = u.x.array
+    return u_grid.warp_by_scalar()
 
+# + tags=["hide-input"]
+def create_side_by_side_plot(u_continuous:dolfinx.fem.Function, u_dg:dolfinx.fem.Function, ):
+    def num_glob_cells(u:dolfinx.fem.Function)->int:
+        mesh = u.function_space.mesh
+        cell_map = mesh.topology.index_map(mesh.topology.dim)
+        return cell_map.size_global
 
-plot_1D_scalar_function(wh, "First order Discontinuous Lagrange")
+    pyvista_continuous = warp_1D(u_continuous)
+    pyvista_dg = warp_1D(u_dg)
 
+    pyvista.set_jupyter_backend("static")
+    plotter = pyvista.Plotter(shape=(1, 2))
+    plotter.subplot(0,0)
+    plotter.add_text(f"Continuous Lagrange N={num_glob_cells(u_continuous)}")
+    plotter.add_mesh(pyvista_continuous, style="wireframe", line_width=3)
+    plotter.show_axes()
+    plotter.view_xz()
+    plotter.subplot(0,1)
+    plotter.add_text(f"Discontinuous Lagrange N={num_glob_cells(u_dg)}")
+    plotter.add_mesh(pyvista_dg, style="wireframe", line_width=3)
+    plotter.show_axes()
+    plotter.view_xz()
+    if not pyvista.OFF_SCREEN:
+        plotter.show()
+    pyvista.set_jupyter_backend("html")
+# -
+
+pyvista.start_xvfb(1.0)
+create_side_by_side_plot(uh, wh)
 
 # We observe that both solutions overshoot and undershoot around the discontinuity
-# Let us try this for a variety of mesh sizes
+# Let us refine the mesh several times to see if the solution converges
 
 for N in [50, 100, 200]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
     V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
     W = dolfinx.fem.functionspace(mesh, ("DG", 1))
-    V_projector = Projector(V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
-    uh = V_projector.project(h(V.mesh))
-    W_projector = Projector(W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
-    wh = W_projector.project(h(W.mesh))
-    # Lagrange
-    plot_1D_scalar_function(uh, f"First order Lagrange ({N})")
-
-    # Discontinuous Lagrange
-    plot_1D_scalar_function(wh, f"First order discontinuous Lagrange ({N})")
+    V_projector = Projector(V, petsc_options=petsc_options)
+    uh = V_projector.project(h_nonaligned(V.mesh))
+    W_projector = Projector(W, petsc_options=petsc_options)
+    wh = W_projector.project(h_nonaligned(W.mesh))
+    create_side_by_side_plot(uh, wh)
 
 
-# We still see overshoots with either space. This is known as Gibbs phenomenom and is discussed in detail in {cite}`ZHANG2022Gibbs`.
-# However, if we align the discontinuity with the mesh, we will observe something interesting
+# We still see overshoots with either space. This is known as Gibbs phenomenon and is
+# discussed in detail in {cite}`ZHANG2022Gibbs`.
 
+# ## Grid-aligned discontinuity
+# Next, we choose $\alpha = 0.2$ and choose grid sizes such that the discontinuity is aligned with a cell boundary.
 
-def h_aligned(mesh: dolfinx.mesh.Mesh):
-    x = ufl.SpatialCoordinate(mesh)
-    return ufl.conditional(ufl.lt(x[0], 0.2), ufl.cos(ufl.pi * x[0]), -ufl.sin(x[0]))
-
+h_aligned = partial(h, 0.2)
 
 for N in [20, 40, 80]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
     V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
     W = dolfinx.fem.functionspace(mesh, ("DG", 1))
-    V_projector = Projector(V, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    V_projector = Projector(V, petsc_options=petsc_options)
     uh = V_projector.project(h_aligned(V.mesh))
-    W_projector = Projector(W, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    W_projector = Projector(W, petsc_options=petsc_options)
     wh = W_projector.project(h_aligned(W.mesh))
 
-    # Lagrange
-    plot_1D_scalar_function(uh, f"Aligned first order Lagrange ({N})")
+    create_side_by_side_plot(uh, wh)
 
-    # Discontinuous Lagrange
-    plot_1D_scalar_function(wh, f"Aligned first order discontinuous Lagrange ({N})")
+
+# ## Interpolation of functions and UFL-expressions
+
+# Above we have defined a function that is dependent on the spatial coordinates of `ufl`, and it is a purely symbolic expression.
+# If we want to evaluate this expression, either at a given point or interpolate it into a function space, we need to compile code
+# similar to the code generated with `dolfinx.fem.form` or calling FFCx.
+# The main difference is that for an expression, there is no summation over quadrature.
+# To perform this compilation for a given point in the reference cell, we call
+
+
+mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 20)
+compiled_h = dolfinx.fem.Expression(h_aligned(mesh), np.array([0.5]))
+
+# We can now evaluate the expression at the point 0.5 in the reference element for any cell
+# (this coordinate is then pushed forward to the given input cell).
+# For instance, we can evaluate this expression in the cell with index 0 with
+compiled_h.eval(mesh, np.array([0], dtype=np.int32))
+
+# ## Interpolate expressions
+
+Q = dolfinx.fem.functionspace(mesh, ("DG", 2))
+h_Q = dolfinx.fem.Expression(h_aligned(mesh), Q.element.interpolation_points())
+
+# We interpolate `h_Q` into a subset of the cells in the mesh
+
+q = dolfinx.fem.Function(Q)
+some_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0]>0.3)
+q.interpolate(h_Q, cells=some_cells)
+q.x.scatter_forward()
+
+# and plot the result
+
+plotter = pyvista.Plotter()
+plotter.add_mesh(warp_1D(q), style="wireframe", line_width=5)
+plotter.show_axes()
+plotter.view_xz()
+if not pyvista.OFF_SCREEN:
+    plotter.show()
+
 
 # ## Exercises
 #

@@ -3,13 +3,13 @@
 # In the previous sections we have only considered continuous and discontinuous Lagrange elements.
 # However, there is a large variety of elements that is supported in DOLFINx.
 
-# + tags=["hide-input"]
+# + tags=["remove-input"]
 from IPython.display import IFrame
 
 IFrame(
     "https://defelement.com/lists/implementations/basix.ufl.html",
     width=900,
-    height=1000,
+    height=600,
 )
 # -
 

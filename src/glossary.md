@@ -44,4 +44,11 @@ PETSc
 
 MUMPS
     MUltifrontal Massively Parallel sparse direct Solver. See: https://mumps-solver.org/index.php for more information
+
+GMSH
+    Open source meshing software. See: https://gmsh.info/ for more information
+
+OCC
+    The Open Cascade project. An open source 3D geometry library.
+    See: https://dev.opencascade.org/ for more information.
 ```
