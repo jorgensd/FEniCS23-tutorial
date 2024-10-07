@@ -1,4 +1,4 @@
-# # Form compilation
+# # Efficient usage of the Unified Form Language
 #
 # As we discussed in [Code generation](./code_generation) DOLFINx generates code once the user has specified the variational form.
 # This process can be somewhat time consuming, as generating, compiling and linking the code can take time.
@@ -17,6 +17,7 @@ mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 30, 30)
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 # -
 
+# ## Problem statement
 # Let us consider a simple heat equation,
 # \begin{align}
 # \frac{\partial u}{\partial t} - \nabla \cdot( k(t) \nabla u) &= f(x,y,t) \qquad \text{in } \Omega \\
@@ -73,6 +74,7 @@ t.value = 0
 x, y = ufl.SpatialCoordinate(mesh)
 
 # Next, we create each component of the conditional statement
+
 condition = ufl.lt(x, 0.5)
 true_statement = 0.4 * y
 false_statement = 0.5 * t
@@ -83,19 +85,27 @@ f = ufl.conditional(condition, true_statement, false_statement)
 # Now we have defined all varying functions outside the time loop, and each of them can be updated
 # by updating the constant values
 
-# We define the full variational formulation
+# ## Time-derivatives
+# We use a simple backward Euler time stepping scheme to solve the problem.
 
 u = ufl.TrialFunction(V)
 u_n = dolfinx.fem.Function(V)
 dudt = (u - u_n) / dt
 
+# ## Full variational formulation
+# With all the definitions above we can write the full variational form as
+# $F(u, v)$
+
 v = ufl.TestFunction(V)
 dx = ufl.Measure("dx", domain=mesh)
 F = dudt * v * dx + k * ufl.inner(ufl.grad(u), ufl.grad(v)) * dx - f * v * dx
+
+# ## Automatic extraction of the linear and bi-linear form
+# We can exploit UFL to extract the linear and bi-linear components of the variational form
+
 a, L = ufl.system(F)
 
 # We generate and compile the C code for these expressions using `dolfinx.fem.form`
-
 
 # + tags=["hide-output"]
 a_compiled = dolfinx.fem.form(a)
@@ -136,6 +146,8 @@ petsc_options = {
 }
 problem = dolfinx.fem.petsc.LinearProblem(a_compiled, L_compiled, u=uh, bcs=[], petsc_options=petsc_options)
 
+# ## The temporal loop
+
 # For each temporal step, we update the time variable and call the `solve` command that re-assemble the system
 
 T = 1
@@ -145,3 +157,9 @@ while t.value < T:
     problem.solve()
     # Update previous solution
     u_n.x.array[:] = uh.x.array
+
+
+# ```{note}
+# Note that there is no definitions of variables within the temporal loop. There is simply copying of data or accumulation of data
+# from the previous time step. This is a very efficient way of solving time-dependent problems in DOLFINx.
+# ```

@@ -1,7 +1,7 @@
 # # Integration of different kinds of forms
-# As we have seen above, we have used `dolfinx.fem.assemble_scalar` to
-# assemble scalar valued expressions in DOLFINx.
-# However, in {ref}`variational_form` we observed that we need to compute a matrix $A$ and a vector $b$.
+# As we have seen in the section on [Integration measures](./benefits_of_curved_meshes),
+# we have used `dolfinx.fem.assemble_scalar` to compute scalar integrals in DOLFINx.
+# However, in the subsection {ref}`variational_form` we observed that we need to compute a matrix $A$ and a vector $b$.
 # How do we compute them in DOLFINx without using `dolfinx.fem.petsc.LinearProblem`?
 #
 # In this section, we will compare assembly on a linear and a curved mesh.
@@ -41,25 +41,31 @@ def linear_form(f, v, dx):
     return ufl.inner(f, v) * dx
 # -
 
+# ### Assembly on the curved mesh
+
 # We then define the right hand side equation over the curved mesh
 
 v = ufl.TestFunction(V)
 f = dolfinx.fem.Constant(curved_mesh, (0, -9.81))
 dx_curved = ufl.Measure("dx", domain=curved_mesh)
 L = linear_form(f, v, dx_curved)
+
+# We compile the form
+
 L_compiled = dolfinx.fem.form(L)
 
 # We can now assemble the right hand side vector using `dolfinx.fem.petsc.assemble_vector`
-# Additionally, we compute the runtime of the assembly by using the `time` module
+# Additionally, we compute the runtime of the assembly by using the `time` module.
+# Since we want to assemble a vector, we pre-define it as a `dolfinx.fem.Function` from the function space of the
+# test function, so that we can re-use it for repeated assemblies. Additionally, this takes care of some of
+# the memory management when interfacing with PETSc.
 
 import dolfinx.fem.petsc
 from time import perf_counter
 
-# We create a vector in the function space of the test function, that we can assemble data into
-
 b = dolfinx.fem.Function(V)
 
-# ```{note}
+# ```{admonition} Accumulation of values when assembling a vector
 # When we call `assemble_vector`, we will not zero out values already present in the vector.
 # Instead, the new values will be added to the existing values.
 # Call `b.x.array[:] = 0.0` to zero out the vector before assembling.
@@ -72,8 +78,8 @@ b.x.scatter_reverse(dolfinx.la.InsertMode.add)
 end = perf_counter()
 
 # We can now compare the performance of assembling over the linear mesh with the same resolution:
-
-# 1. Define the linear form
+# ### Assembly on linear grid
+# Define the linear form
 
 v_lin = ufl.TestFunction(V_lin)
 f_lin = dolfinx.fem.Constant(linear_mesh, (0, -9.81))
@@ -81,7 +87,7 @@ dx_lin = ufl.Measure("dx", domain=linear_mesh)
 L_lin = linear_form(f_lin, v_lin, dx_lin)
 L_lin_compiled = dolfinx.fem.form(L_lin)
 
-# 2. Assemble the vector
+# Define and assemble the vector
 
 b_lin = dolfinx.fem.Function(V_lin)
 b_lin.x.array[:] = 0.0
@@ -90,7 +96,7 @@ dolfinx.fem.petsc.assemble_vector(b_lin.x.petsc_vec, L_lin_compiled)
 b_lin.x.scatter_reverse(dolfinx.la.InsertMode.add)
 end_lin = perf_counter()
 
-# 3. Compare with curved assembly
+# ### Comparison with curved assembly
 
 print(f"Linear time (b): {end_lin-start_lin:.2e} Curved/Linear={(end-start)/(end_lin-start_lin):.2e}")
 

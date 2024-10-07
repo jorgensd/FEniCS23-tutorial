@@ -11,6 +11,8 @@ parts:
   - caption: "Meshes in DOLFINx"
     chapters:
       - file: "src/mesh_generation.py"
+      - file: "src/external_mesh.py"
+      - file: "src/parallel_mesh.py"
   - caption: "Assembly"
     chapters:
       - file: "src/benefits_of_curved_meshes"
