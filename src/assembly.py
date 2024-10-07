@@ -46,12 +46,12 @@ def linear_form(f, v, dx):
 v = ufl.TestFunction(V)
 f = dolfinx.fem.Constant(curved_mesh, (0, -9.81))
 dx_curved = ufl.Measure("dx", domain=curved_mesh)
-L = dolfinx.fem.form(linear_form(f, v, dx_curved))
+L = linear_form(f, v, dx_curved)
+L_compiled = dolfinx.fem.form(L)
 
 # We can now assemble the right hand side vector using `dolfinx.fem.petsc.assemble_vector`
 # Additionally, we compute the runtime of the assembly by using the `time` module
 
-from petsc4py import PETSc
 import dolfinx.fem.petsc
 from time import perf_counter
 
@@ -67,7 +67,7 @@ b = dolfinx.fem.Function(V)
 
 b.x.array[:] = 0.0
 start = perf_counter()
-dolfinx.fem.petsc.assemble_vector(b.x.petsc_vec, L)
+dolfinx.fem.petsc.assemble_vector(b.x.petsc_vec, L_compiled)
 b.x.scatter_reverse(dolfinx.la.InsertMode.add)
 end = perf_counter()
 
@@ -78,14 +78,15 @@ end = perf_counter()
 v_lin = ufl.TestFunction(V_lin)
 f_lin = dolfinx.fem.Constant(linear_mesh, (0, -9.81))
 dx_lin = ufl.Measure("dx", domain=linear_mesh)
-L_lin = dolfinx.fem.form(linear_form(f_lin, v_lin, dx_lin))
+L_lin = linear_form(f_lin, v_lin, dx_lin)
+L_lin_compiled = dolfinx.fem.form(L_lin)
 
 # 2. Assemble the vector
 
 b_lin = dolfinx.fem.Function(V_lin)
 b_lin.x.array[:] = 0.0
 start_lin = perf_counter()
-dolfinx.fem.petsc.assemble_vector(b_lin.x.petsc_vec, L_lin)
+dolfinx.fem.petsc.assemble_vector(b_lin.x.petsc_vec, L_lin_compiled)
 b_lin.x.scatter_reverse(dolfinx.la.InsertMode.add)
 end_lin = perf_counter()
 
@@ -93,7 +94,15 @@ end_lin = perf_counter()
 
 print(f"Linear time (b): {end_lin-start_lin:.2e} Curved/Linear={(end-start)/(end_lin-start_lin):.2e}")
 
-# We observe that the assembly time is only slight faster on the linear mesh.
+# We additionally check the estimated quadrature degree for each integral
+
+from ufl.algorithms import expand_derivatives, estimate_total_polynomial_degree
+print(f"Curved (b) estimate: {estimate_total_polynomial_degree(expand_derivatives(L))}")
+print(f"Linear (b) estimate: {estimate_total_polynomial_degree(expand_derivatives(L_lin))}")
+
+# We observe that the assembly time is faster on the linear mesh, even though the quadrature degree is the same for both integrals.
+# This is due to the computation of the Jacobian inside the assembly kernel.
+#
 # What about assembling a matrix?
 
 # ## Bilinear forms (matrices)
@@ -112,8 +121,8 @@ def bilinear_form(u, v, dx):
     return ufl.inner(u, v) * dx + ufl.inner(ufl.grad(u), ufl.grad(v)) * dx
 
 
-u = ufl.TrialFunction(V)
-a = dolfinx.fem.form(bilinear_form(u,v, dx_curved))
+a = bilinear_form(ufl.TrialFunction(V), v, dx_curved)
+a_compiled = dolfinx.fem.form(a)
 
 # Next, as a sparse matrix is expensive to create, we use the `dolfinx.fem.petsc.create_matrix` function to create a matrix
 # which we can use multiple times if we want to assemble the matrix multiple times.
@@ -124,31 +133,35 @@ a = dolfinx.fem.form(bilinear_form(u,v, dx_curved))
 # ```
 #
 
-A = dolfinx.fem.petsc.create_matrix(a)
+A = dolfinx.fem.petsc.create_matrix(a_compiled)
 A.zeroEntries()
 
 # Next we can assemble the matrix using `dolfinx.fem.petsc.assemble_matrix`
 
 start_A = perf_counter()
-dolfinx.fem.petsc.assemble_matrix(A, a)
+dolfinx.fem.petsc.assemble_matrix(A, a_compiled)
 A.assemble()
 end_A = perf_counter()
 
 # We do a similar computation for the linear mesh
 
-u_lin = ufl.TrialFunction(V_lin)
-a_lin = dolfinx.fem.form(bilinear_form(u_lin, v_lin, dx_lin))
-A_lin = dolfinx.fem.petsc.create_matrix(a_lin)
+a_lin = bilinear_form(ufl.TrialFunction(V_lin), v_lin, dx_lin)
+a_lin_compiled = dolfinx.fem.form(a_lin)
+A_lin = dolfinx.fem.petsc.create_matrix(a_lin_compiled)
 A_lin.zeroEntries()
 start_A_lin = perf_counter()
-dolfinx.fem.petsc.assemble_matrix(A_lin, a_lin)
+dolfinx.fem.petsc.assemble_matrix(A_lin, a_lin_compiled)
 A_lin.assemble()
 end_A_lin = perf_counter()
 
 # We compare the assembly times
 
 print(f"Linear time (A): {end_A_lin-start_A_lin:.2e} Curved/Linear={(end_A-start_A)/(end_A_lin-start_A_lin):.2e}")
+print(f"Linear time (b): {end_lin-start_lin:.2e} Curved/Linear={(end-start)/(end_lin-start_lin):.2e}")
 
 # We observe that assembling the matrix is two orders of magnitude slower than assembling the vector.
 # We also observe that the assembly on a linear grid is faster than on a curved grid.
 
+# We also compare the estimated quadrature degree of the integrals
+print(f"Curved (A) estimate: {estimate_total_polynomial_degree(expand_derivatives(a))}")
+print(f"Linear (A) estimate: {estimate_total_polynomial_degree(expand_derivatives(a_lin))}")

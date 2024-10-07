@@ -62,7 +62,7 @@ def generate_mesh(resolution: float, order:int):
 # `ufl.dx`, which is a UFL integration measure that indicates that we want to integrate
 # over all cells of a given domain.
 
-linear_mesh, lct, fct = generate_mesh(0.5, 1)
+linear_mesh, linear_celltags, linear_facettags = generate_mesh(0.5, 1)
 dx = ufl.dx(domain=linear_mesh)
 
 # We can now compute the area of the domain by integrating the constant function 1 over the domain.
@@ -72,9 +72,10 @@ area = one * dx
 # We have above create a UFL form for the integral over the domain multiplied by a constant.
 # We now want to assemble this over the mesh.
 # This is done in a three step approach:
-# 1. Compile the form (generate code for the assemble process)
-# 2. Compute the local contribution of each cell owned by the current process
+# 1. Compile the form (generate code for the assemble process).
+# 2. Compute the local contribution of each cell owned by the current process.
 # 3. Accumulate the local contributions across all processes.
+
 compiled_area = dolfinx.fem.form(area)
 local_area = dolfinx.fem.assemble_scalar(compiled_area)
 global_area = linear_mesh.comm.allreduce(local_area, op=MPI.SUM)
@@ -86,6 +87,7 @@ print(f"Area of the domain is {global_area}, expected {A_ex}\n",
 
 # We observe a small error in the total area of the circle, but what about the area of each subdomain?
 # We have that the area of the ellipsoid should be
+
 A_ex_inner = np.pi*R_i*aspect_ratio*R_i
 
 # # Integration over subdomains
@@ -95,17 +97,12 @@ A_ex_inner = np.pi*R_i*aspect_ratio*R_i
 # `linear_mesh` and its corresponding marker.
 # We can use this information within the a `ufl.Measure` to restrict the integration to a subdomain.
 
-dx_with_data = ufl.Measure("dx", domain=linear_mesh, subdomain_data=lct)
+dx_with_data = ufl.Measure("dx", domain=linear_mesh, subdomain_data=linear_celltags)
 
-
+# We can now create a form which only integrates over the cells marked with the value 3 with the following syntax
 # ```{note}
 # Remember that to call assemble on any form we need to multiply by an integration measure.
-# The supported measure types in DOLFINx is:
-# 1. `"dx"` - Integration over all cells in your mesh
-# 2. `"ds"` - Integration over all exterior facets in your mesh (All facets connected to only a single cell)
-# 3. `"dS"` - Integration over all interior facets in your mesh (All facets connected to two cells)
 # ```
-# We can now create a form which only integrates over the cells marked with the value 3 with the following syntax
 
 inner_area = dolfinx.fem.form(one*dx_with_data(3))
 
@@ -184,6 +181,98 @@ print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
 # accurate geometry description, but the approximation to the {term}`PDE` might have large errors.
 # There is therefore a balancing act between using a high resolution grid and higher order elements.
 
-# # Exercise
+# ## Exercise
 # 1. Do we really need a third order grid to represent the circular geometry accurately? Could we use a second order grid?
 # 2. What happens to the integral of the constant function 1 over the domain if we use a second order or third order grid?
+
+
+# # Integration over facets
+# There are other integration measures that can be used in DOLFINx.
+# 1. `"dx"` - Integration over all cells in your mesh
+# 2. `"ds"` - Integration over all exterior facets in your mesh (All facets connected to only a single cell)
+# 3. `"dS"` - Integration over all interior facets in your mesh (All facets connected to two cells)
+
+# We can use the facet markers to integrate over the boundary of the domain
+
+ds_linear = ufl.Measure("ds", domain=linear_mesh, subdomain_data=linear_facettags)
+
+# For the example at hand, we only have one external boundary, which means that it is equivalent to write
+# `ds_linear` or `ds_linear(15)`
+
+# ## Example: Boundary integral with spatially varying functions
+# In this example we will consider the boundary integral
+#
+# $$
+# \int_{\partial\Omega} g n \cdot v ~\mathrm{d}s\qquad \forall v \in V,
+# $$
+# 
+# where `g(x)` is a known function, `n` the outwards pointing facet normal and `v` a test function.
+
+# We create a spatially varying function with `ufl.SpatialCoordinate`
+# and use `ufl.FacetNormal` to symbolically describe the outward pointing normal
+
+def linear_form(element, domain):
+    x, y = ufl.SpatialCoordinate(domain)
+    g = ufl.sin(x)*ufl.cos(y)
+    n = ufl.FacetNormal(domain)
+    V = dolfinx.fem.functionspace(domain, element)
+    v = ufl.TestFunction(V)
+    ds = ufl.Measure("ds", domain=domain)
+    return ufl.inner(g*n, v) * ds
+
+
+# We start by considering a linear element
+
+linear_el = ("Lagrange", 1, (2, ))
+
+L1 = linear_form(linear_el, linear_mesh)
+
+# Similarly, we create a form for the curved mesh
+
+L2 = linear_form(linear_el, curved_mesh)
+
+# ## Comparison of the integrals
+# We can use UFL to analyze the integrals.
+# One of the tools we can use is an estimator of the polynomial degree of the integrand
+
+from ufl.algorithms import expand_derivatives, estimate_total_polynomial_degree
+
+# ### Exercise
+# - Do we expect the estimated polynomial degree to be the same for the two integrals?
+
+# + tags=["hide-output"]
+print(f"Linear mesh {estimate_total_polynomial_degree(expand_derivatives(L1))}")
+print(f"Curved mesh {estimate_total_polynomial_degree(expand_derivatives(L2))}")
+# -
+
+# ```{admonition} Explanation
+# :class: dropdown
+# Since the mapping from the reference to the physical domain is no longer linear,
+# we do not have a constant Jacobian. Similarly, the normal vector is no longer constant
+# along the facet. This increases the polynomial degree of the integrand.
+# ```
+
+# ### Consequences
+# Having a higher polynomial estimate means that we require more quadrature points
+# to represent the integrand accurately.
+# This can lead to a higher computational cost.
+
+# We can use basix to investigate how many quadrature points there are in different default rules.
+
+import basix
+points, weights = basix.make_quadrature(linear_mesh.basix_cell(), 7, basix.QuadratureType.Default)
+print(f"Number of quadrature points: {points.shape[0]}")
+
+points, weights = basix.make_quadrature(linear_mesh.basix_cell(), 15, basix.QuadratureType.Default)
+print(f"Number of quadrature points: {points.shape[0]}")
+
+# This means that we will do three times the amount of computations on the curved mesh compared to the linear mesh.
+# There is also the additional consequence that the Jacobian computation is moved into the quadrature loop of the assembly kernels.
+
+# ### How to reduce the computational cost
+# One way to reduce the computational cost is to fix the quadrature rule to a given order.
+# We can do this through the metadata parameter in the `ufl.Measure` object.
+
+dx_restricted = ufl.Measure("dx", domain=curved_mesh, metadata={"quadrature_degree": 7})
+
+# This will override the estimated values by UFL.
