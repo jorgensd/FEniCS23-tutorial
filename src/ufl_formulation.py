@@ -158,9 +158,10 @@ G = ufl.FunctionSpace(domain, basix.ufl.element("Lagrange", cell, 1))
 g = ufl.Coefficient(G)
 
 # (variational_form)=
-# ## The variational form
+# ## The variational form of a projection
 #
-# ```{note}
+#
+# ```{admonition} The finite element method and its links to minimization
 # Recall that the variational form is a way of writing the {term}`PDE` on a form that we can use to solve the problem with
 # {term}`FEM`.
 # We start by multiplying the equation with a test-function from a suitable space (in this case the same space as the solution)
