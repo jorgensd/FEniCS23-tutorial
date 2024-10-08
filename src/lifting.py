@@ -163,7 +163,7 @@ displaced_dofs = dolfinx.fem.locate_dofs_topological(V, facet_marker.dim, facet_
 
 # Next, we define the prescribed displacement
 
-u_prescribed = dolfinx.fem.Constant(mesh, (0.0, 0.0, H / 4))
+u_prescribed = dolfinx.fem.Constant(mesh, (0.0, 0.0, -H / 2))
 u_clamped = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
 
 # We define the Dirichlet boundary condition object as
@@ -183,6 +183,22 @@ petsc_options = {
 problem = dolfinx.fem.petsc.LinearProblem(a, L, bcs=bcs, petsc_options=petsc_options)
 u = problem.solve()
 u.x.scatter_forward()
+
+# + tags=["hide-input"]
+import pyvista
+pyvista.start_xvfb(1.2)
+grid = dolfinx.plot.vtk_mesh(u.function_space)
+pyvista_grid = pyvista.UnstructuredGrid(*grid)
+values = u.x.array.reshape(-1, 3)
+pyvista_grid.point_data["u"] = values
+warped = pyvista_grid.warp_by_vector("u")
+plotter = pyvista.Plotter()
+plotter.show_axes()
+plotter.add_mesh(pyvista_grid, style="points")
+plotter.add_mesh(warped, scalars="u", lighting=True)
+if not pyvista.OFF_SCREEN:
+    plotter.show()
+# -
 
 # However, what goes on under the hood?
 
