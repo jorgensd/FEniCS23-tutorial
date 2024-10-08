@@ -151,7 +151,7 @@ class Projector:
 
 # ## Non-aligning discontinuity
 # We will start considering the case where $\alpha$ is not aligned with the mesh.
-# We choose $\alpha = \frac{\pi}{5}$ and get the following $h$:
+# We choose $\alpha = \frac{\pi}{10}$ and get the following $h$:
 #
 # $$
 # h(x) = \begin{cases} \cos(\pi x) \quad\text{if } x<\frac{\pi}{10}\\
@@ -163,6 +163,7 @@ h_nonaligned = partial(h, np.pi / 10)
 
 # Let us now try to use the re-usable projector to approximate this function
 
+# +
 Nx = 20
 mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, Nx)
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
@@ -170,6 +171,7 @@ V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 petsc_options={"ksp_type": "preonly", "pc_type": "lu"}
 V_projector = Projector(V, petsc_options=petsc_options)
 uh = V_projector.project(h_nonaligned(V.mesh))
+# -
 
 # We can now repeat the study for a DG-1 function
 
@@ -236,6 +238,8 @@ for N in [50, 100, 200]:
 # ## Grid-aligned discontinuity
 # Next, we choose $\alpha = 0.2$ and choose grid sizes such that the discontinuity is aligned with a cell boundary.
 
+# +
+
 h_aligned = partial(h, 0.2)
 
 for N in [20, 40, 80]:
@@ -249,6 +253,7 @@ for N in [20, 40, 80]:
 
     create_side_by_side_plot(uh, wh)
 
+# -
 
 # ## Interpolation of functions and UFL-expressions
 
@@ -265,6 +270,7 @@ compiled_h = dolfinx.fem.Expression(h_aligned(mesh), np.array([0.5]))
 # We can now evaluate the expression at the point 0.5 in the reference element for any cell
 # (this coordinate is then pushed forward to the given input cell).
 # For instance, we can evaluate this expression in the cell with index 0 with
+
 compiled_h.eval(mesh, np.array([0], dtype=np.int32))
 
 # ## Interpolate expressions
