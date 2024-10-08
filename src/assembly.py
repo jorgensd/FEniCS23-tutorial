@@ -60,12 +60,15 @@ L_compiled = dolfinx.fem.form(L)
 # test function, so that we can re-use it for repeated assemblies. Additionally, this takes care of some of
 # the memory management when interfacing with PETSc.
 
+# + 
 import dolfinx.fem.petsc
 from time import perf_counter
 
 b = dolfinx.fem.Function(V)
+# -
 
 # ```{admonition} Accumulation of values when assembling a vector
+# :class: dropdown
 # When we call `assemble_vector`, we will not zero out values already present in the vector.
 # Instead, the new values will be added to the existing values.
 # Call `b.x.array[:] = 0.0` to zero out the vector before assembling.
@@ -98,8 +101,9 @@ end_lin = perf_counter()
 
 # ### Comparison with curved assembly
 
+# + tags=["hide-input"]
 print(f"Linear time (b): {end_lin-start_lin:.2e} Curved/Linear={(end-start)/(end_lin-start_lin):.2e}")
-
+# -
 # We additionally check the estimated quadrature degree for each integral
 
 from ufl.algorithms import expand_derivatives, estimate_total_polynomial_degree
@@ -114,14 +118,22 @@ print(f"Linear (b) estimate: {estimate_total_polynomial_degree(expand_derivative
 # ## Bilinear forms (matrices)
 # As we have seen in {ref}`variational_form`, we additionally get a **sparse matrix** when we assemble a bilinear form?
 #
-# ### Question:
-# - Why is it a sparse matrix?
+# ```{admonition} Why is it a sparse matrix?
+# :class: dropdown
+# As the basis function $\phi_i$ only have local support within the elements sharing the entity
+# they are associated to, we only get a few non-zero entries in each row of the matrix.
+# ```
+#
 
 # We use a similar approach as above to assemble a matrix.
 # We start by defining the bilinear form with a `TestFunction` and a `TrialFunction`.
 
 
 # We consider the following bi-linear form
+#
+# $$
+# a(u,v) = \int_\Omega u \cdot v + \nabla u \cdot \nabla v ~\mathrm{d}x.
+# $$
 
 def bilinear_form(u, v, dx):
     return ufl.inner(u, v) * dx + ufl.inner(ufl.grad(u), ufl.grad(v)) * dx
@@ -132,7 +144,8 @@ a_compiled = dolfinx.fem.form(a)
 
 # Next, as a sparse matrix is expensive to create, we use the `dolfinx.fem.petsc.create_matrix` function to create a matrix
 # which we can use multiple times if we want to assemble the matrix multiple times.
-# ```{note}
+# ```{admonition} Accumulation of values when assembling a matrix
+# :class: dropdown
 # DOLFINx does not zero out existing values in the matrix when assembling, so if you assemble the matrix multiple times,
 # the values will be added to the existing values.
 # Call `A.zeroEntries()` to zero out the matrix before assembling.
@@ -162,12 +175,17 @@ end_A_lin = perf_counter()
 
 # We compare the assembly times
 
+# + tags=["hide-input"]
 print(f"Linear time (A): {end_A_lin-start_A_lin:.2e} Curved/Linear={(end_A-start_A)/(end_A_lin-start_A_lin):.2e}")
 print(f"Linear time (b): {end_lin-start_lin:.2e} Curved/Linear={(end-start)/(end_lin-start_lin):.2e}")
+# -
 
 # We observe that assembling the matrix is two orders of magnitude slower than assembling the vector.
 # We also observe that the assembly on a linear grid is faster than on a curved grid.
 
 # We also compare the estimated quadrature degree of the integrals
+
+# + tags=["hide-input"]
 print(f"Curved (A) estimate: {estimate_total_polynomial_degree(expand_derivatives(a))}")
 print(f"Linear (A) estimate: {estimate_total_polynomial_degree(expand_derivatives(a_lin))}")
+# -

@@ -242,7 +242,7 @@ pulled_back_L = ufl.algorithms.compute_form_data(
 )
 print(pulled_back_L.integral_data[0])
 
-
+# (functionals)=
 # # Functionals and derivatives
 # As mentioned above, many finite element problems can be rephrased as an optimization problem.
 #

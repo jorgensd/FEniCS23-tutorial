@@ -1,9 +1,12 @@
 # # Efficient usage of the Unified Form Language
 #
-# As we discussed in [Code generation](./code_generation) DOLFINx generates code once the user has specified the variational form.
-# This process can be somewhat time consuming, as generating, compiling and linking the code can take time.
+# As we discussed in [Code generation](./code_generation)
+# DOLFINx generates code once the user has specified the variational form.
+# This process can be somewhat time consuming, as generating,
+# compiling and linking the code can take time.
 # We start by setting up a simple unit square and a first order Lagrange space.
 
+# + 
 from mpi4py import MPI
 
 import numpy as np
@@ -12,7 +15,6 @@ import dolfinx
 import dolfinx.fem.petsc
 import ufl
 
-# + tags=["hide-output"]
 mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, 30, 30)
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 # -
@@ -34,10 +36,9 @@ V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 # \end{align}
 
 # In this equation, there are several time dependent and spatially varying coefficients.
-# With a naive implementation of this code in DOLFINx, one would define the variational formulation inside the
-# temporal loop, and re-compile the variational form for each time step.
+# With a naive implementation of this code in DOLFINx, one would define the variational formulation **inside** the
+# temporal loop, and **re-compile** the variational form for each time step.
 # In DOLFINx, a form is compiled whenever one calls `dolfinx.fem.form`, or initialize a `dolfinx.fem.petsc.LinearProblem`.
-# We start by defining the variational form, with a backward Euler time stepping.
 
 # ## Time-dependent constants
 # To be able to use adaptive time stepping, we define `dt` as a `dolfinx.fem.Constant`, such that we can re-assign values to the
@@ -111,9 +112,8 @@ a, L = ufl.system(F)
 a_compiled = dolfinx.fem.form(a)
 L_compiled = dolfinx.fem.form(L)
 
-# + [markdown]
+# ### Initial conditions
 # We generate the initial condition by using lambda expressions
-# -
 
 
 def u_init(x, sigma=0.1, mu=0.3):

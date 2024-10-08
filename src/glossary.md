@@ -51,4 +51,10 @@ GMSH
 OCC
     The Open Cascade project. An open source 3D geometry library.
     See: https://dev.opencascade.org/ for more information.
+
+PARAVIEW
+    Open source visualization software. See: https://www.paraview.org/ for more information
+
+PYVISTA
+    Open source visualization software. See: https://pyvista.org/ for more information
 ```

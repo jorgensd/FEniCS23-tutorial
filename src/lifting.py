@@ -1,12 +1,13 @@
 # # Application of Dirichlet boundary conditions
 # In this section, we will cover how one applies strong Dirichlet conditions to a variational problem.
 #
+# ## Problem specification
 # We consider the equations of linear elasticity,
 #
 # $$
 # \begin{align}
 # -\nabla \cdot \sigma (u) &= f && \text{in } \Omega\\
-# u &= u_D && \text{on } \partial \partial\Omega_D\\
+# u &= u_D && \text{on } \partial\Omega_D\\
 # \sigma(u) \cdot n &= T && \text{on } \partial \Omega_N
 # \end{align}
 # $$
@@ -25,9 +26,25 @@
 # $I$ is the identity tensor, $\mathrm{tr}$ is the trace operator on a tensor,
 # $\epsilon$ is the symmetric strain tensor (symmetric gradient),
 # and $u$ is the displacement vector field. Above we have assumed isotropic elastic conditions.
+# ```{admonition} Parallels to previous lecture
+# The only difference between this formulation and the one in {ref}`functionals` is that we have added a
+# potential traction force on the boundary.
+# One can easily adapt the energy minimization problem for this.
+# ```
 #
-# We will use model the equations on a beam, with a fixed displacement at the right end,
-# clamping at the right end and no traction boundary conditions on all other boundaries.
+# We will consider a beam of dimensions $[0,0,0] \times [L,W,H]$, where
+#
+# $$
+# \begin{align}
+# u_D(0,y,x) &= (0,0,0)\\
+# u_D(L,y,x) &= (0,0,-g)\\
+# \end{align}
+# $$
+#
+# where $g$ is a prescribed displacement.
+# In other words we are clamping the beam on one end, and applying a given displacement on the
+# other end.
+# All other boundaries will be traction free, i.e. $T=(0,0,0)$.
 
 # +
 from mpi4py import MPI
@@ -38,7 +55,6 @@ import numpy as np
 import dolfinx
 import dolfinx.fem.petsc
 import ufl
-# -
 
 L = 10.0
 W = 3.0
@@ -50,8 +66,6 @@ mesh = dolfinx.mesh.create_box(
     cell_type=dolfinx.mesh.CellType.hexahedron,
 )
 tdim = mesh.topology.dim
-
-# + tags=["hide-output"]
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 2, (mesh.geometry.dim,)))
 # -
 
@@ -68,16 +82,19 @@ boundary_facets = dolfinx.mesh.exterior_facet_indices(mesh.topology)
 # We pass in a Python function that takes in a `(3, num_points)` array, and returns an 1D array of booleans
 # indicating if the point satisfies the condition or not.
 
+# +
 def left_facets(x):
     return np.isclose(x[0], 0.0)
 
 
 clamped_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, left_facets)
+# -
 
 # An equivalent way to find the facets is to use Python `lambda` functions, which are anonymous functions
 # (they are not bound to a variable name). Here we find the facets on the right boundary, where $x = L$
 
-prescribed_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, lambda x: np.isclose(x[0], L))
+prescribed_facets = dolfinx.mesh.locate_entities_boundary(
+    mesh, tdim - 1, lambda x: np.isclose(x[0], L))
 
 # As all mesh entities are represented as integers, we can find the boundary facets by
 # remaining facets using numpy set operations
@@ -100,7 +117,9 @@ facet_marker = dolfinx.mesh.meshtags(mesh, tdim - 1, np.arange(num_facets, dtype
 
 # ## The variational formulation
 
-# + tags=["hide-output"]
+# We have now seen this variational formulation a few times
+
+# +
 x = ufl.SpatialCoordinate(mesh)
 T_0 = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
 E = dolfinx.fem.Constant(mesh, 1.4e3)
@@ -143,7 +162,6 @@ clamped_dofs = dolfinx.fem.locate_dofs_topological(V, facet_marker.dim, facet_ma
 displaced_dofs = dolfinx.fem.locate_dofs_topological(V, facet_marker.dim, facet_marker.find(prescribed))
 
 # Next, we define the prescribed displacement
-# $u_D(L,y,z)=(0,0,W/4)$
 
 u_prescribed = dolfinx.fem.Constant(mesh, (0.0, 0.0, H / 4))
 u_clamped = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
