@@ -89,7 +89,7 @@ gmsh.model.occ.synchronize()
 # ## Physical groups
 
 # In order to ensure that only the parts of the mesh that you would like to use is generated (and no overlapping cells),
-# you need to create `Physical Groups`` for all volumes, surfaces and curves you would like to have in your mesh.
+# you need to create `Physical Groups` for all volumes, surfaces and curves you would like to have in your mesh.
 # We start by creating a physical marker for the inner circle.
 # The `addPhysicalGroup` function takes three arguments:
 # 1. The topological dimension of the entity

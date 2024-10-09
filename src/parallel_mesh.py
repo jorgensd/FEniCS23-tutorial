@@ -29,7 +29,7 @@ def inspect_mesh(shared_facet: bool = False):
     tdim = topology.dim
     print(f"Number of cells in process: {topology.index_map(tdim).size_local}", flush=True)
     print(f"Number of shared cells: {topology.index_map(tdim).num_ghosts}", flush=True)
-    print(f"Global range {topology.index_map(tdim).local_range}")
+    print(f"Local range [{topology.index_map(tdim).local_range[0]}, {topology.index_map(tdim).local_range[1]})")
     cell_to_vertices = topology.connectivity(tdim, 0)
     print(cell_to_vertices)
 
