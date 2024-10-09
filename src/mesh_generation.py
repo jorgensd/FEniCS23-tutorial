@@ -157,7 +157,7 @@ domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
 
 # ### Questions/Exercises
 # 1. Where are the point evaluations $l_3, l_4, l_5$ located in the reference triangle?
-# 2. What entities do we associated each functional with?
+# 2. Which entities do we associate each functional with?
 # 3. Can you make a visualization script for the push forward from the reference element to the a physical element,
 #   as done in  {ref}`straight_edge_triangle`?
 

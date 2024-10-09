@@ -22,21 +22,21 @@
 extern "C" {
 #endif
 
+extern ufcx_finite_element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe;
+
 extern ufcx_finite_element element_e60371328a49148d7039c103115050855ae79a18;
 
 extern ufcx_finite_element element_9c6cd84bfc267751ad970123baa9b98e3391e3e7;
 
 extern ufcx_finite_element element_f4f67755fd7baf4a3b706b45903ee041f79a5f4e;
 
-extern ufcx_finite_element element_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe;
+extern ufcx_dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe;
 
 extern ufcx_dofmap dofmap_e60371328a49148d7039c103115050855ae79a18;
 
 extern ufcx_dofmap dofmap_9c6cd84bfc267751ad970123baa9b98e3391e3e7;
 
 extern ufcx_dofmap dofmap_f4f67755fd7baf4a3b706b45903ee041f79a5f4e;
-
-extern ufcx_dofmap dofmap_74d6cdfde3ea4b5d423c7bf4310320a0acafddfe;
 
 extern ufcx_integral integral_444ae3de485a81d987c5e8c21247536bf812e211;
 

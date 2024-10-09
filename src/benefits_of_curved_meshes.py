@@ -212,7 +212,7 @@ donut_area = assemble(outer_area)
 
 # + tags=["remove-input"]
 print(f"Number of elements: {curved_mesh.topology.index_map(curved_mesh.topology.dim).size_global}")
-print(f"Area of the domain is {ellipsoid_area+donut_area:.5e}, expected {A_ex:.5e}\n", 
+print(f"Area of the domain is {ellipsoid_area+donut_area:.5e}, expected {A_ex:.5e}\n",
       f"Relative error: {relative_error(ellipsoid_area+donut_area, A_ex):.2f}%")
 print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
       f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
@@ -225,7 +225,7 @@ print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
 
 # #### Potential drawbacks of higher order grids
 # In most problems, we are not just computing the surface area or volume of the mesh.
-# We usually have an unknown $u_h$ that we need to solve a {term}`PDE`` for.
+# We usually have an unknown $u_h$ that we need to solve a {term}`PDE` for.
 #
 # If we choose a **sub-parametric approach**, where we use a **lower order space** for the unknown $u_h$ than
 # for the mesh geometry, the solution will be poorly represented.
@@ -328,7 +328,8 @@ points, weights = basix.make_quadrature(
 print(f"Number of quadrature points: {points.shape[0]}")
 
 # This means that we will do three times the amount of computations on the curved mesh compared to the linear mesh.
-# There is also the additional consequence that the Jacobian computation is moved into the quadrature loop of the assembly kernels.
+# There is also the additional consequence that the Jacobian computation is moved into the
+# quadrature loop of the assembly kernels.
 
 # ## How to reduce the computational cost
 # One way to reduce the computational cost is to fix the quadrature rule to a given order.
@@ -336,4 +337,13 @@ print(f"Number of quadrature points: {points.shape[0]}")
 
 dx_restricted = ufl.Measure("dx", domain=curved_mesh, metadata={"quadrature_degree": 7})
 
+# ```{admonition} Variational crimes
+# Reducing the accuracy of the integration by lowering the quadrature rule is considered to be a
+# **variational crime** {cite}`sulli2012lecture` (Chapter 3.4) and should be done with caution.
+# ```
+
 # This will override the estimated values by UFL.
+
+# ```{bibliography}
+#    :filter: cited and ({"src/benefits_of_curved_meshes"} >= docnames)
+# ```
