@@ -210,6 +210,7 @@ if not pyvista.OFF_SCREEN:
 #
 # If the problem had been unconstrained, we would assemble the stiffness matrix as
 
+a_compiled = dolfinx.fem.form(a)
 A = dolfinx.fem.petsc.assemble_matrix(a_compiled)
 A.assemble()
 
@@ -270,6 +271,7 @@ for bc in bcs:
 
 # Next, we assemble the RHS vector as normal and set the BC values
 
+L_compiled = dolfinx.fem.form(L)
 b = dolfinx.fem.petsc.assemble_vector(L_compiled)
 b.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
 dolfinx.fem.petsc.set_bc(b, bcs)
