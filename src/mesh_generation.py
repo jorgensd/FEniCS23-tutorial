@@ -138,6 +138,7 @@ nodes = np.array(
 connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
 
 # ````{admonition} The input node ordering
+# :class: dropdown
 # We follow the node ordering of [DefElement](https://defelement.com/) for the input order of the nodes.
 # If you are reading in data from another format (VTK or GMSH), you can use the functions
 # `dolfinx.cpp.io.perm_vtk` or `dolfinx.cpp.perm_gmsh` to get the map from the ordering of the nodes
@@ -150,7 +151,7 @@ connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
 # with `np.argsort(perm_vtk(...))`.
 # `````
 
-# With this in mid, we can create the DOLFINx mesh
+# With this in mind, we can create the DOLFINx mesh
 
 c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 2, shape=(nodes.shape[1],)))
 domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)

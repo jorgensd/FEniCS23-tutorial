@@ -27,6 +27,7 @@
 # $\epsilon$ is the symmetric strain tensor (symmetric gradient),
 # and $u$ is the displacement vector field. Above we have assumed isotropic elastic conditions.
 # ```{admonition} Parallels to previous lecture
+# :class: dropdown
 # The only difference between this formulation and the one in {ref}`functionals` is that we have added a
 # potential traction force on the boundary.
 # One can easily adapt the energy minimization problem for this.
@@ -36,8 +37,8 @@
 #
 # $$
 # \begin{align}
-# u_D(0,y,x) &= (0,0,0)\\
-# u_D(L,y,x) &= (0,0,-g)\\
+# u_D(0,y,z) &= (0,0,0)\\
+# u_D(L,y,z) &= (0,0,-g)\\
 # \end{align}
 # $$
 #
@@ -90,7 +91,7 @@ def left_facets(x):
 clamped_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, left_facets)
 # -
 
-# An equivalent way to find the facets is to use Python `lambda` functions, which are anonymous functions
+# An equivalent way to find the facets is to use Python `lambda` functions, which are [anonymous functions](https://docs.python.org/3/glossary.html#term-lambda)
 # (they are not bound to a variable name). Here we find the facets on the right boundary, where $x = L$
 
 prescribed_facets = dolfinx.mesh.locate_entities_boundary(
@@ -140,8 +141,6 @@ u = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
 a = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
 L = ufl.inner(f, v) * ufl.dx + ufl.inner(T_0, v) * ds(3)
-a_compiled = dolfinx.fem.form(a)
-L_compiled = dolfinx.fem.form(L)
 # -
 
 # ## Defining a Dirichlet condition

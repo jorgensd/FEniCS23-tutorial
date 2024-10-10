@@ -53,7 +53,7 @@ dt.value = 0.005
 
 # Similarly, we can define the diffusive coefficient `k` such as
 
-
+# +
 def k_func(t):
     return 0.1 if t < 0.5 else 0.05
 
@@ -67,6 +67,7 @@ while t.value < 1:
     k.value = k_func(t.value)
 # We reset t
 t.value = 0
+# -
 
 # ## Conditional values
 # Next, we define the spatial and temporal source term using a `ufl.conditional`
@@ -106,16 +107,18 @@ F = dudt * v * dx + k * ufl.inner(ufl.grad(u), ufl.grad(v)) * dx - f * v * dx
 
 a, L = ufl.system(F)
 
+# ## Explicit code generation
 # We generate and compile the C code for these expressions using `dolfinx.fem.form`
 
-# + tags=["hide-output"]
+# +
 a_compiled = dolfinx.fem.form(a)
 L_compiled = dolfinx.fem.form(L)
+# -
 
-# ### Initial conditions
+# ## Initial conditions
 # We generate the initial condition by using lambda expressions
 
-
+# +
 def u_init(x, sigma=0.1, mu=0.3):
     """
     The input function x is a (3, number_of_points) numpy array, which is then
@@ -130,7 +133,7 @@ def u_init(x, sigma=0.1, mu=0.3):
 
 
 u_n.interpolate(u_init)
-
+# -
 
 # + [markdown]
 # ## Setting up the linear solver

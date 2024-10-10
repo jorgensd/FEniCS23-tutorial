@@ -1,6 +1,6 @@
 # (mesh_generation:eshelby)=
 # # Meshes from external sources
-# As DOLFINx works on `numpy`-arrays it is easy to convert any mesh format that be converted into this structure.
+# As DOLFINx works on `numpy`-arrays it is quite straightforward to convert any mesh format into this structure.
 # DOLFINx has a `gmsh`-interface, using the {term}`GMSH` Python-API to read `GMSH`-models or `.msh` files.
 # We will start with creating a simple circular geometry (similar to the one used in the
 # [Eshelby problem](https://github.com/msolides-2024/MU5MES01-2024/tree/main/02-Eshelby_inclusion)) using GMSH.
@@ -25,6 +25,7 @@ gmsh.model.add("eshelby")
 # and an `outer_disk` with radius `R_e`.
 # The disks will have a center at the origin and we can select an aspect ratio to make the inner disk elliptical
 
+# +
 center = (0,0,0)
 aspect_ratio = 0.5
 R_i = 0.3
@@ -32,6 +33,7 @@ R_e = 0.8
 
 inner_disk = gmsh.model.occ.addDisk(*center, R_i, aspect_ratio * R_i)
 outer_disk = gmsh.model.occ.addDisk(*center, R_e, R_e)
+# -
 
 # What GMSH returns for each of the `addDisk` calls is an integer, which internally represents a geometry
 # object of topological dimension two.
@@ -44,15 +46,15 @@ print(f"{outer_disk=}")
 
 # ```{admonition} GMSH objects and mesh resolution
 # The disk objects has no concept of mesh resolution.
-# This is controlled at a later stage with the mesh algorithm, where a finer resolution will
-# more closely approximate the disks. Two-dimensional meshing algorithms uses the parameterization
-# of the circle to create the mesh.
+# This is controlled at a later stage using GMSH size field or meshing options, where a finer
+# resolution will more closely approximate the disks.
+# Two-dimensional meshing algorithms uses the parameterization of the circle to create the mesh.
 # ```
 
 # ## Boolean operations of entities
 
 # In GMSH, you can combine multiple geometries into a single mesh (by unions, intersections or differences).
-# We use the `fragment` function to embed the boundary of the inner circle in the outer disk
+# We use the `fragment` function to embed the boundary of the inner circle in the outer disk.
 
 # Now that we have created two parametric representations of a disk, we would like to create a combined surface,
 # where each of the circular boundaries are included.
@@ -186,10 +188,11 @@ gmsh.model.mesh.setOrder(3)
 circular_mesh, cell_marker, facet_marker = dolfinx.io.gmshio.model_to_mesh(
     gmsh.model, MPI.COMM_WORLD, 0, gdim=2)
 
-# We can now finalize GMSH (as we will not use it further in this section), and inspect the cell_markers and facet_markers
+# We can now finalize GMSH (as we will not use it further in this section), and inspect the `cell_marker` and `facet_marker`.
 
 gmsh.finalize()
 
+# (mesh_generation:tags)=
 # ## The DOLFINx Meshtags object
 # A `dolfinx.mesh.MeshTags` object is a collection of entities (vertices, edges, facets or cells) in
 # a mesh that have been tagged with some markers.

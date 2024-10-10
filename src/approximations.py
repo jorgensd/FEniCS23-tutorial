@@ -26,11 +26,11 @@ def h(alpha, mesh: dolfinx.mesh.Mesh):
 
 # ## Reusable projector
 # Imagine we want to solve a sequence of such post-processing steps for functions $f$ and $g$.
-# If the mesh isn't changing between each projection, the left hand side is constant.
-# Thus, it would make sense to only assemble the matrix once.
-# Following this, we create a general projector class
+# If the **mesh is not changing** between each projection, the left hand side is constant.
+# Thus, it would make sense to assemble the matrix **once**.
+# Following this, we create a general projector class (`class Projector`)
 
-# +
+# + tags=["hide-input"]
 from typing import Optional
 
 import numpy as np
@@ -145,7 +145,7 @@ class Projector:
 
 # With this class, we can send in any expression written in {term}`UFL` to the projector,
 # and then generate code for the right hand side assembly, and then solve the linear system.
-# If we use LU factorization, most of the cost will be in the first projection, when the matrix is
+# If we use **LU factorization**, most of the cost will be in the first projection, when the matrix is
 # factorized. This is then cached, so that the solution algorithm is reduced to solving to linear problems;
 # one upper diagonal matrix and one lower diagonal matrix.
 
@@ -158,10 +158,27 @@ class Projector:
 # -\sin(x) \quad\text{otherwise} \end{cases}
 # $$
 
+# ````{admonition} The partial-function
+# :class: dropdown
+# For the next cases, we would like to fix alpha in our function `h`, but we want to keep the mesh as a variable.
+# We can use the [partial](https://docs.python.org/3/library/functools.html#functools.partial)
+# function from the `functools` module to fix the first argument of a function.
+# It creates a new object that behaves as a function where `mesh` is the only input parameter.
+# i.e.
+# ```python
+# from functools import partial
+# def f(x, y, z):
+#   print(f"{x=}, {y=}, {z=}")
+# h = partial(f, 3, 4)
+# h(7) # prints x=3, y=4, z=7
+# ```
+# ````
+
 from functools import partial
 h_nonaligned = partial(h, np.pi / 10)
 
 # Let us now try to use the re-usable projector to approximate this function
+# with a **continuous Lagrange space of order 1**
 
 # +
 Nx = 20
@@ -173,7 +190,7 @@ V_projector = Projector(V, petsc_options=petsc_options)
 uh = V_projector.project(h_nonaligned(V.mesh))
 # -
 
-# We can now repeat the study for a DG-1 function
+# We can now repeat the study for a **discontinuous Lagrange space of order 1**
 
 W = dolfinx.fem.functionspace(mesh, ("DG", 1))
 W_projector = Projector(W, petsc_options=petsc_options)
@@ -181,14 +198,14 @@ wh = W_projector.project(h_nonaligned(W.mesh))
 
 # We compare the two solutions side by side
 
-
-def warp_1D(u: dolfinx.fem.Function):
+# + tags=["hide-input"]
+def warp_1D(u: dolfinx.fem.Function, factor=1):
     """Convenience function to warp a 1D function for visualization in pyvista"""
     u_grid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(u.function_space))
     u_grid.point_data["u"] = u.x.array
-    return u_grid.warp_by_scalar()
+    return u_grid.warp_by_scalar(factor=factor)
 
-# + tags=["hide-input"]
+
 def create_side_by_side_plot(u_continuous:dolfinx.fem.Function, u_dg:dolfinx.fem.Function, ):
     def num_glob_cells(u:dolfinx.fem.Function)->int:
         mesh = u.function_space.mesh
@@ -213,14 +230,16 @@ def create_side_by_side_plot(u_continuous:dolfinx.fem.Function, u_dg:dolfinx.fem
     if not pyvista.OFF_SCREEN:
         plotter.show()
     pyvista.set_jupyter_backend("html")
-# -
+
 
 pyvista.start_xvfb(1.0)
 create_side_by_side_plot(uh, wh)
+# -
 
 # We observe that both solutions overshoot and undershoot around the discontinuity
 # Let us refine the mesh several times to see if the solution converges
 
+# + tags=["hide-input"]
 for N in [50, 100, 200]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
     V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
@@ -230,7 +249,7 @@ for N in [50, 100, 200]:
     W_projector = Projector(W, petsc_options=petsc_options)
     wh = W_projector.project(h_nonaligned(W.mesh))
     create_side_by_side_plot(uh, wh)
-
+# -
 
 # We still see overshoots with either space. This is known as Gibbs phenomenon and is
 # discussed in detail in {cite}`ZHANG2022Gibbs`.
@@ -238,10 +257,9 @@ for N in [50, 100, 200]:
 # ## Grid-aligned discontinuity
 # Next, we choose $\alpha = 0.2$ and choose grid sizes such that the discontinuity is aligned with a cell boundary.
 
-# +
-
 h_aligned = partial(h, 0.2)
 
+# + tags=["hide-input"]
 for N in [20, 40, 80]:
     mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, N)
     V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
@@ -252,19 +270,18 @@ for N in [20, 40, 80]:
     wh = W_projector.project(h_aligned(W.mesh))
 
     create_side_by_side_plot(uh, wh)
-
 # -
 
 # ## Interpolation of functions and UFL-expressions
 
-# Above we have defined a function that is dependent on the spatial coordinates of `ufl`, and it is a purely symbolic expression.
+# Above we have defined a function that is dependent on the spatial coordinates of `ufl`, and it is a **purely symbolic expression**.
 # If we want to evaluate this expression, either at a given point or interpolate it into a function space, we need to compile code
 # similar to the code generated with `dolfinx.fem.form` or calling FFCx.
-# The main difference is that for an expression, there is no summation over quadrature.
+# The main difference is that for an expression, there is **no summation over quadrature**.
 # To perform this compilation for a given point in the reference cell, we call
 
 
-mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 20)
+mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, 7)
 compiled_h = dolfinx.fem.Expression(h_aligned(mesh), np.array([0.5]))
 
 # We can now evaluate the expression at the point 0.5 in the reference element for any cell
@@ -274,26 +291,47 @@ compiled_h = dolfinx.fem.Expression(h_aligned(mesh), np.array([0.5]))
 compiled_h.eval(mesh, np.array([0], dtype=np.int32))
 
 # ## Interpolate expressions
+# We can also use expressions for post-processing, by interpolating into an appropriate
+# finite element function space (`Q`). To do so, we compile the UFL-expression to be evaluated
+# at the interpolation points of `Q`.
 
-Q = dolfinx.fem.functionspace(mesh, ("DG", 2))
-h_Q = dolfinx.fem.Expression(h_aligned(mesh), Q.element.interpolation_points())
+# +
+V = dolfinx.fem.functionspace(mesh, ("Lagrange", 2))
+u = dolfinx.fem.Function(V)
 
-# We interpolate `h_Q` into a subset of the cells in the mesh
+Q = dolfinx.fem.functionspace(mesh, ("DG", 1))
+
+dudx = ufl.grad(u)[0]
+compile_dudx = dolfinx.fem.Expression(dudx, Q.element.interpolation_points())
+# -
+
+# We populate `u` with some data on some part of the domain
+
+left_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0]>=0.3+1e-14)
+u.interpolate(lambda x: x[0]**2, cells=left_cells)
+
+# We can then interpolate `dudx` into `Q` with
 
 q = dolfinx.fem.Function(Q)
-some_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0]>0.3)
-q.interpolate(h_Q, cells=some_cells)
-q.x.scatter_forward()
+q.interpolate(compile_dudx)
 
 # and plot the result
 
+# + tags=["hide-input"]
+pyvista.set_jupyter_backend("static")
 plotter = pyvista.Plotter()
-plotter.add_mesh(warp_1D(q), style="wireframe", line_width=5)
+plotter.add_mesh(warp_1D(u, 1), style="wireframe", line_width=5)
+plotter.view_xz()
+if not pyvista.OFF_SCREEN:
+    plotter.show()
+plotter = pyvista.Plotter()
+plotter.add_mesh(warp_1D(q, 0.1), style="wireframe", line_width=5)
 plotter.show_axes()
 plotter.view_xz()
 if not pyvista.OFF_SCREEN:
     plotter.show()
-
+pyvista.set_jupyter_backend("html")
+# -
 
 # ## Exercises
 #

@@ -1,11 +1,11 @@
 # # Integration measures
 # In this section we will cover how to compute different kinds of integrals in DOLFINx.
-# To illustrate this, we will use the mesh from {ref}`mesh_generation:eshelby`. where we saw that it is possible
-# to control the order of the underlying mesh elements using GMSH.
-# In this section we will see how this can be used to improve the accuracy of the solution.
+# To illustrate this, we will use the mesh from {ref}`mesh_generation:eshelby`.
+# In this section we explore how different mesh resolutions and mesh order can affect the quality of the solution.
 # We will also explore potential drawbacks.
 
-# First we create an easily customizable function based on the previous example
+# First, we create a convenience function for generating the mesh from the {ref}`mesh_generation:eshelby`,
+# where the only input parameter is the mesh resolution and order.
 
 # + tags = ["hide-input"]
 from mpi4py import MPI
@@ -74,6 +74,7 @@ dx = ufl.dx(domain=linear_mesh)
 dx_equivalent = ufl.Measure("dx", domain=linear_mesh)
 
 # ```{admonition} Which constructor to use?
+# :class: dropdown
 # It is preferable to use `ufl.Measure`, as it reduces the risk of name-clashes in the code.
 # ```
 #
@@ -81,8 +82,8 @@ dx_equivalent = ufl.Measure("dx", domain=linear_mesh)
 
 area = 1 * dx
 
-# We have above create a UFL form for the integral over the domain multiplied by a constant.
-# We now want to assemble this over the mesh.
+# `area` is a symbolic expression for the integral over the domain.
+# We now want to assemble (compute this value) for the given mesh.
 # ```{admonition} Assembly of a scalar value in parallel
 # 1. Compile the form (generate code for the scalar form).
 # 2. Compute the local contribution of each cell owned by the current process.
@@ -106,11 +107,10 @@ print(f"Area of the domain is {global_area:.3e}, expected {A_ex:3e}\n",
 
 
 # ## Integration over subdomains
-# In the mesh generation, we marked the ellipsoid with the value 3 and the remainder of the domain with the value 7.
-# We use the other outputs from `dolfinx.io.gmshio.model_to_mesh` to extract to access the subdomain information.
-# The second output of the function is a `dolfinx.mesh.MeshTags` object, consisting of a list of all cells in the
-# `linear_mesh` and its corresponding marker.
-# We can use this information within the a `ufl.Measure` to restrict the integration to a subdomain.
+# In the mesh generation, we marked the inner ellipsoid with the value 3 and the remainder of the domain with the value 7.
+# We get this information from the `linear_celltags` and `linear_facettags` variables,
+# as shown in {ref}`mesh_generation:tags`.
+# We can use this information within the `ufl.Measure` to restrict the integration to a subdomain.
 
 dx_with_data = ufl.Measure("dx", domain=linear_mesh, subdomain_data=linear_celltags)
 
@@ -138,6 +138,7 @@ def assemble(form: ufl.Form|dolfinx.fem.Form)->dolfinx.default_scalar_type:
 # We also create a convenience function for computing the relative error
 # between an approximate solution `a` and the exact solution `a_ex`:
 
+# + tags=["hide-input"]
 def relative_error(a, a_ex):
     """Return the relative error in percent
     :param a: The approximate value
@@ -145,6 +146,7 @@ def relative_error(a, a_ex):
     :return: Relative error in percent
     """
     return np.abs(a - a_ex)/a_ex*100
+# -
 
 # We have that the area of the ellipsoid should be
 
@@ -195,7 +197,7 @@ print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
 # However, how fine of a mesh do we need if we use third order elements?
 
 # ### Comparison on a curved mesh
-# We use the coarsest mesh resolution from the above examples, and create a mesh with triangles with
+# We use the **coarsest** mesh resolution from the above examples, and create a mesh with triangles with
 # third order polynomials describing each facet.
 
 # + tags=["remove-output"]
@@ -235,12 +237,8 @@ print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
 # If you use a higher order function-space for your unknown, and you are able to mesh your geometry with a
 # higher order element, then do so.
 #
-# The exception to this rule is when you are working with piecewise straight geometries, such as squares and boxes,
+# The **exception** to this rule is when you are working with **piecewise straight** geometries, such as squares and boxes,
 # as there is no benefit in using higher order elements for these geometries.
-#
-# ## Exercise
-# 1. Do we really need a third order grid to represent the circular geometry accurately? Could we use a second order grid?
-# 2. What happens to the integral of the constant function 1 over the domain if we use a second order or third order grid?
 
 
 # # Integration over facets
@@ -337,13 +335,13 @@ print(f"Number of quadrature points: {points.shape[0]}")
 
 dx_restricted = ufl.Measure("dx", domain=curved_mesh, metadata={"quadrature_degree": 7})
 
+# This will override the estimated values by UFL.
 # ```{admonition} Variational crimes
 # Reducing the accuracy of the integration by lowering the quadrature rule is considered to be a
 # **variational crime** {cite}`sulli2012lecture` (Chapter 3.4) and should be done with caution.
 # ```
 
-# This will override the estimated values by UFL.
-
+# ## References
 # ```{bibliography}
 #    :filter: cited and ({"src/benefits_of_curved_meshes"} >= docnames)
 # ```
