@@ -7,7 +7,7 @@
 from IPython.display import IFrame
 
 IFrame(
-    "https://defelement.com/lists/implementations/basix.ufl.html",
+    "https://defelement.org/lists/implementations/basix.ufl.html",
     width=900,
     height=600,
 )

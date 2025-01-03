@@ -144,7 +144,7 @@ domain = ufl.Mesh(c_el)
 # We can use any supported finite element space to describe our unknown `u`.
 #
 # For more advanced maps, see for instance:
-# [DefElement - vector valued basis functions](https://defelement.com/ciarlet.html#Vector-valued+basis+functions).
+# [DefElement - vector valued basis functions](https://defelement.org/ciarlet.html#Vector-valued+basis+functions).
 #
 
 el = basix.ufl.element("Discontinuous Lagrange", cell, 2)
