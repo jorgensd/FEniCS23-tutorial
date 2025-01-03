@@ -109,7 +109,7 @@ plot_mesh(domain)
 # As we use a finite element to describe the mapping from the reference element to the physical element,
 # we can use higher order elements to describe the reference element, giving us the possibility to create curved meshes.
 # In the following example,w e will create a single cell mesh (triangle) using a
-# [second order Lagrange element](https://defelement.com/elements/examples/triangle-lagrange-equispaced-2.html).
+# [second order Lagrange element](https://defelement.org/elements/examples/triangle-lagrange-equispaced-2.html).
 #
 # This finite element has a total of 6 degrees of freedom, and we will use the standard dual basis:
 #
@@ -139,7 +139,7 @@ connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
 
 # ````{admonition} The input node ordering
 # :class: dropdown
-# We follow the node ordering of [DefElement](https://defelement.com/) for the input order of the nodes.
+# We follow the node ordering of [DefElement](https://defelement.org/) for the input order of the nodes.
 # If you are reading in data from another format (VTK or GMSH), you can use the functions
 # `dolfinx.cpp.io.perm_vtk` or `dolfinx.cpp.perm_gmsh` to get the map from the ordering of the nodes
 # from the aforementioned formats to DOLFINx. You would apply this as

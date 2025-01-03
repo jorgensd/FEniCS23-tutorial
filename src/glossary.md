@@ -14,7 +14,7 @@ FEM
     The Finite Element Method
 
 FE
-    A finite element. A encyclopedia can be found at: https://defelement.com/
+    A finite element. A encyclopedia can be found at: https://defelement.org/
 
 Tabulation
     Filling a n-th order tensor with data. Term often used when computing basis values and derivatives at a set of points.
