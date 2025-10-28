@@ -17,10 +17,10 @@ import numpy as np
 aspect_ratio = 0.5
 R_i = 0.3
 R_e = 0.8
-center = (0,0,0)
+center = (0, 0, 0)
 
 
-def generate_mesh(resolution: float, order:int):
+def generate_mesh(resolution: float, order: int):
     """Generate a mesh with a given minimal resolution of a given order."""
     assert order >= 1
     gmsh.initialize()
@@ -29,9 +29,7 @@ def generate_mesh(resolution: float, order:int):
     inner_disk = gmsh.model.occ.addDisk(*center, R_i, aspect_ratio * R_i)
     outer_disk = gmsh.model.occ.addDisk(*center, R_e, R_e)
 
-    _, map_to_input = gmsh.model.occ.fragment(
-                [(2, outer_disk)], [(2, inner_disk)]
-            )
+    _, map_to_input = gmsh.model.occ.fragment([(2, outer_disk)], [(2, inner_disk)])
     gmsh.model.occ.synchronize()
 
     circle_inner = [surface[1] for surface in map_to_input[1] if surface[0] == 2]
@@ -49,14 +47,15 @@ def generate_mesh(resolution: float, order:int):
     gmsh.model.addPhysicalGroup(1, interface, tag=12)
     gmsh.model.addPhysicalGroup(1, ext_boundary, tag=15)
 
-
     gmsh.option.setNumber("Mesh.CharacteristicLengthMax", resolution)
 
     gmsh.model.mesh.generate(2)
     gmsh.model.mesh.setOrder(order)
-    mesh, cell_marker, facet_marker = dolfinx.io.gmshio.model_to_mesh(gmsh.model, MPI.COMM_WORLD, 0, gdim=2)
+    mesh_data = dolfinx.io.gmsh.model_to_mesh(gmsh.model, MPI.COMM_WORLD, 0, gdim=2)
     gmsh.finalize()
-    return mesh, cell_marker, facet_marker
+    return mesh_data.mesh, mesh_data.cell_tags, mesh_data.facet_tags
+
+
 # -
 
 # ## Integration over cells
@@ -67,7 +66,8 @@ linear_mesh, linear_celltags, linear_facettags = generate_mesh(0.2, 1)
 # -
 
 # Next we want to specify an integration measure.
-# This can be done in two ways, either by calling the `ufl.Measure` constructor with the string `"dx"` or by
+# This can be done in two ways, either by calling the
+# {py:class}`ufl.Measure` constructor with the string `"dx"` or by
 # or by calling `ufl.dx`.
 
 dx = ufl.dx(domain=linear_mesh)
@@ -75,7 +75,8 @@ dx_equivalent = ufl.Measure("dx", domain=linear_mesh)
 
 # ```{admonition} Which constructor to use?
 # :class: dropdown
-# It is preferable to use `ufl.Measure`, as it reduces the risk of name-clashes in the code.
+# It is preferable to use {py:class}`ufl.Measure`,
+# as it reduces the risk of name-clashes in the code.
 # ```
 #
 # We can now compute the area of the domain by integrating the constant function 1 over the domain.
@@ -96,11 +97,13 @@ global_area = linear_mesh.comm.allreduce(local_area, op=MPI.SUM)
 
 # We can compare this to the area of the exact geometry
 
-A_ex = np.pi*R_e**2
+A_ex = np.pi * R_e**2
 
 # + tags=["hide-input"]
-print(f"Area of the domain is {global_area:.3e}, expected {A_ex:3e}\n",
-      f"Relative error: {np.abs(global_area - A_ex)/A_ex*100:.2f}%")
+print(
+    f"Area of the domain is {global_area:.3e}, expected {A_ex:3e}\n",
+    f"Relative error: {np.abs(global_area - A_ex) / A_ex * 100:.2f}%",
+)
 # -
 
 # We observe a small error in the total area of the circle, but what about the area of each subdomain?
@@ -110,7 +113,8 @@ print(f"Area of the domain is {global_area:.3e}, expected {A_ex:3e}\n",
 # In the mesh generation, we marked the inner ellipsoid with the value 3 and the remainder of the domain with the value 7.
 # We get this information from the `linear_celltags` and `linear_facettags` variables,
 # as shown in {ref}`mesh_generation:tags`.
-# We can use this information within the `ufl.Measure` to restrict the integration to a subdomain.
+# We can use this information within the
+# {py:class}`ufl.Measure` to restrict the integration to a subdomain.
 
 dx_with_data = ufl.Measure("dx", domain=linear_mesh, subdomain_data=linear_celltags)
 
@@ -119,24 +123,27 @@ dx_with_data = ufl.Measure("dx", domain=linear_mesh, subdomain_data=linear_cellt
 # Remember that to call assemble on any form we need to multiply by an integration measure.
 # ```
 
-inner_area = dolfinx.fem.form(1*dx_with_data(3))
+inner_area = dolfinx.fem.form(1 * dx_with_data(3))
 
 # We can also pass multiple markers within the same restriction
 
-total_area = dolfinx.fem.form(1*dx_with_data((3, 7)))
-outer_area = dolfinx.fem.form(1*dx_with_data(7))
+total_area = dolfinx.fem.form(1 * dx_with_data((3, 7)))
+outer_area = dolfinx.fem.form(1 * dx_with_data(7))
 
 # We can now assemble the forms as before.
 # Since we will do this many times in this demo, we create a convenience function
 # for assembling and accumulating a scalar value:
 
-def assemble(form: ufl.Form|dolfinx.fem.Form)->dolfinx.default_scalar_type:
+
+def assemble(form: ufl.Form | dolfinx.fem.Form) -> dolfinx.default_scalar_type:
     compiled_form = dolfinx.fem.form(form)
     local_form = dolfinx.fem.assemble_scalar(compiled_form)
     return compiled_form.mesh.comm.allreduce(local_form, op=MPI.SUM)
 
+
 # We also create a convenience function for computing the relative error
 # between an approximate solution `a` and the exact solution `a_ex`:
+
 
 # + tags=["hide-input"]
 def relative_error(a, a_ex):
@@ -145,12 +152,14 @@ def relative_error(a, a_ex):
     :param a_ex: The exact value (cannot be 0)
     :return: Relative error in percent
     """
-    return np.abs(a - a_ex)/a_ex*100
+    return np.abs(a - a_ex) / a_ex * 100
+
+
 # -
 
 # We have that the area of the ellipsoid should be
 
-A_ex_inner = np.pi*R_i*aspect_ratio*R_i
+A_ex_inner = np.pi * R_i * aspect_ratio * R_i
 
 # We can now compare the computed areas to the exact areas
 
@@ -161,10 +170,14 @@ donut_area = assemble(outer_area)
 
 # + tags=["hide-input"]
 print(f"Number of elements: {linear_mesh.topology.index_map(linear_mesh.topology.dim).size_global}")
-print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
-      f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
-print(f"Outer area: {donut_area:.5e}, Exact: {global_area - A_ex_inner:.5e}\n",
-      f"Relative error: {relative_error(donut_area, A_ex-A_ex_inner):.2f}%")
+print(
+    f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
+    f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%",
+)
+print(
+    f"Outer area: {donut_area:.5e}, Exact: {global_area - A_ex_inner:.5e}\n",
+    f"Relative error: {relative_error(donut_area, A_ex - A_ex_inner):.2f}%",
+)
 # -
 
 # We observe quite large errors in the area computations.
@@ -175,8 +188,8 @@ print(f"Outer area: {donut_area:.5e}, Exact: {global_area - A_ex_inner:.5e}\n",
 # + tags=["remove-output"]
 fine_linear_mesh, flct, ffct = generate_mesh(0.1, 1)
 dx_fine = ufl.Measure("dx", domain=fine_linear_mesh, subdomain_data=flct)
-inner_area = dolfinx.fem.form(1*dx_fine(3))
-outer_area = dolfinx.fem.form(1*dx_fine(7))
+inner_area = dolfinx.fem.form(1 * dx_fine(3))
+outer_area = dolfinx.fem.form(1 * dx_fine(7))
 # -
 
 # We assemble the scalar value as before
@@ -186,12 +199,18 @@ donut_area = assemble(outer_area)
 
 # + tags=["hide-input"]
 print(f"Number of elements: {fine_linear_mesh.topology.index_map(fine_linear_mesh.topology.dim).size_global}")
-print(f"Area of the domain is {ellipsoid_area+donut_area:.5e}, expected {A_ex:.5e}\n", 
-      f"Relative error: {relative_error(ellipsoid_area+donut_area, A_ex):.2f}%")
-print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
-      f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
-print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
-      f"Relative error: {relative_error(donut_area, A_ex-A_ex_inner):.2f}%")
+print(
+    f"Area of the domain is {ellipsoid_area + donut_area:.5e}, expected {A_ex:.5e}\n",
+    f"Relative error: {relative_error(ellipsoid_area + donut_area, A_ex):.2f}%",
+)
+print(
+    f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
+    f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%",
+)
+print(
+    f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
+    f"Relative error: {relative_error(donut_area, A_ex - A_ex_inner):.2f}%",
+)
 # -
 
 # However, how fine of a mesh do we need if we use third order elements?
@@ -207,19 +226,25 @@ curved_mesh, cct, cft = generate_mesh(0.2, 3)
 # We repeat the process from above
 
 dx_curved = ufl.Measure("dx", domain=curved_mesh, subdomain_data=cct)
-inner_area = dolfinx.fem.form(1*dx_curved(3))
-outer_area = dolfinx.fem.form(1*dx_curved(7))
+inner_area = dolfinx.fem.form(1 * dx_curved(3))
+outer_area = dolfinx.fem.form(1 * dx_curved(7))
 ellipsoid_area = assemble(inner_area)
 donut_area = assemble(outer_area)
 
 # + tags=["remove-input"]
 print(f"Number of elements: {curved_mesh.topology.index_map(curved_mesh.topology.dim).size_global}")
-print(f"Area of the domain is {ellipsoid_area+donut_area:.5e}, expected {A_ex:.5e}\n",
-      f"Relative error: {relative_error(ellipsoid_area+donut_area, A_ex):.2f}%")
-print(f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
-      f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%")
-print(f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
-      f"Relative error: {relative_error(donut_area, A_ex-A_ex_inner):.2f}%")
+print(
+    f"Area of the domain is {ellipsoid_area + donut_area:.5e}, expected {A_ex:.5e}\n",
+    f"Relative error: {relative_error(ellipsoid_area + donut_area, A_ex):.2f}%",
+)
+print(
+    f"Inner area: {ellipsoid_area:.5e}, Exact: {A_ex_inner:.5e}\n",
+    f"Relative error: {relative_error(ellipsoid_area, A_ex_inner):.2f}%",
+)
+print(
+    f"Outer area: {donut_area:.5e}, Exact: {A_ex - A_ex_inner:.5e}\n",
+    f"Relative error: {relative_error(donut_area, A_ex - A_ex_inner):.2f}%",
+)
 # -
 
 # We observe that we get an extremely accurate estimate of the area.
@@ -260,26 +285,27 @@ ds_linear = ufl.Measure("ds", domain=linear_mesh, subdomain_data=linear_facettag
 # $$
 # \int_{\partial\Omega} g n \cdot v ~\mathrm{d}s\qquad \forall v \in V,
 # $$
-# 
+#
 # where `g(x)` is a known function, `n` the outwards pointing facet normal and `v` a test function.
 
-# We create a spatially varying function with `ufl.SpatialCoordinate`
-# and use `ufl.FacetNormal` to symbolically describe the outward pointing normal
+# We create a spatially varying function with {py:class}`ufl.SpatialCoordinate`
+# and use {py:class}`ufl.FacetNormal` to symbolically describe the outward pointing normal
+
 
 def linear_form(element, domain):
     x, y = ufl.SpatialCoordinate(domain)
-    g = ufl.sin(x)*ufl.cos(y)
+    g = ufl.sin(x) * ufl.cos(y)
     n = ufl.FacetNormal(domain)
     V = dolfinx.fem.functionspace(domain, element)
     v = ufl.TestFunction(V)
     ds = ufl.Measure("ds", domain=domain)
-    return ufl.inner(g*n, v) * ds
+    return ufl.inner(g * n, v) * ds
 
 
 # We start by considering a linear element
 
 # +
-linear_el = ("Lagrange", 1, (2, ))
+linear_el = ("Lagrange", 1, (2,))
 
 L1 = linear_form(linear_el, linear_mesh)
 # -
@@ -317,12 +343,11 @@ print(f"Curved mesh {estimate_total_polynomial_degree(expand_derivatives(L2))}")
 # We can use basix to investigate how many quadrature points there are in different default rules.
 
 import basix
-points, weights = basix.make_quadrature(
-    linear_mesh.basix_cell(), 7, basix.QuadratureType.Default)
+
+points, weights = basix.make_quadrature(linear_mesh.basix_cell(), 7, basix.QuadratureType.default)
 print(f"Number of quadrature points: {points.shape[0]}")
 
-points, weights = basix.make_quadrature(
-    linear_mesh.basix_cell(), 15, basix.QuadratureType.Default)
+points, weights = basix.make_quadrature(linear_mesh.basix_cell(), 15, basix.QuadratureType.default)
 print(f"Number of quadrature points: {points.shape[0]}")
 
 # This means that we will do three times the amount of computations on the curved mesh compared to the linear mesh.
@@ -331,7 +356,7 @@ print(f"Number of quadrature points: {points.shape[0]}")
 
 # ## How to reduce the computational cost
 # One way to reduce the computational cost is to fix the quadrature rule to a given order.
-# We can do this through the metadata parameter in the `ufl.Measure` object.
+# We can do this through the metadata parameter in the {py:class}`ufl.Measure` object.
 
 dx_restricted = ufl.Measure("dx", domain=curved_mesh, metadata={"quadrature_degree": 7})
 

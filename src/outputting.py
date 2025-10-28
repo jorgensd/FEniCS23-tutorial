@@ -21,4 +21,4 @@ IFrame(
 # or project the solution we would like to output into a P-th order space that is compatible,
 # we can use Paraview/VTK to visualize the solution.
 
-# The engines `VTXWriter` and `VTKFile` in DOLFINx to write output compatible with Paraview.
+# The engines {py:class}`dolfinx.io.VTXWriter` and {py:class}`dolfinx.io.VTKFile` in DOLFINx to write output compatible with Paraview.

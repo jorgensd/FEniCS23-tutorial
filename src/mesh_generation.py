@@ -9,7 +9,7 @@
 # In DOLFINx, the mesh creation requires 4 inputs:
 #
 # - **MPI communicator**: This is used to decide how the partitioning is performed.
-#   It is usually `MPI.COMM_WORLD` or `MPI.COMM_SELF`.
+#   It is usually {py:obj}`MPI.COMM_WORLD<mpi4py.MPI.COMM_WORLD>` or {py:obj}`MPI.COMM_SELF<mpi4py.MPI.COMM_SELF>`.
 # - **Nodes**: A set of coordinates in 1, 2 or 3D, that represents all the points in the mesh
 # - **Connectivity**: A nested list, where each row corresponds to the node indices of a single cell
 # - **Coordinate element**: A finite element used for pushing coordinates from the reference element
@@ -43,18 +43,19 @@ connectivity = np.array([[0, 1, 2], [0, 2, 3]], dtype=np.int64)
 
 c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 1, shape=(nodes.shape[1],)))
 
-# Finally we create a mesh object by calling `dolfinx.mesh.create_mesh` with the
-# aforementioned inputs
+# Finally we create a mesh object by calling
+# {py:func}`dolfinx.mesh.create_mesh` with the aforementioned inputs
 
-domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
+domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, cells=connectivity, x=nodes, e=c_el)
 
 # ### Visualizing the mesh
 # The mesh can be visualized with {term}`Paraview` or {term}`Pyvista`.
 #
 # Press the drop-down button to inspect the code for visualizing the mesh
 
+
 # + tags=["hide-input"]
-def plot_mesh(mesh: dolfinx.mesh.Mesh, values = None):
+def plot_mesh(mesh: dolfinx.mesh.Mesh, values=None):
     """
     Given a DOLFINx mesh, create a `pyvista.UnstructuredGrid`,
     and plot it and the mesh nodes.
@@ -84,24 +85,25 @@ def plot_mesh(mesh: dolfinx.mesh.Mesh, values = None):
         plotter.add_mesh(ugrid, style="points", color="b", point_size=10)
         ugrid = ugrid.tessellate()
         plotter.add_mesh(ugrid, show_edges=False)
-        plotter.add_mesh(linear_grid,style="wireframe", color="black")
+        plotter.add_mesh(linear_grid, style="wireframe", color="black")
     else:
         # If the mesh is linear we add in the cell markers
         if values is not None:
             linear_grid.cell_data["Marker"] = values
-        plotter.add_mesh(linear_grid,show_edges=True)
+        plotter.add_mesh(linear_grid, show_edges=True)
 
     # We plot the coordinate axis and align it with the xy-plane
     plotter.show_axes()
     plotter.view_xy()
     if not pyvista.OFF_SCREEN:
         plotter.show()
+
+
 # -
 
 
 # The mesh we created above is visualized as
 
-pyvista.start_xvfb(1.0)
 plot_mesh(domain)
 
 
@@ -127,12 +129,7 @@ plot_mesh(domain)
 # We will create a set of six nodes, where we follow the ordering of the dual basis functions
 
 nodes = np.array(
-    [[1.0, 0.0],
-     [2.0, 0.0],
-     [3.0, 2.0],
-     [2.5, 1],
-     [1.5, 1.5],
-     [1.5, -0.2]],
+    [[1.0, 0.0], [2.0, 0.0], [3.0, 2.0], [2.5, 1], [1.5, 1.5], [1.5, -0.2]],
     dtype=np.float64,
 )
 connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
@@ -154,7 +151,7 @@ connectivity = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
 # With this in mind, we can create the DOLFINx mesh
 
 c_el = ufl.Mesh(basix.ufl.element("Lagrange", "triangle", 2, shape=(nodes.shape[1],)))
-domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
+domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, cells=connectivity, x=nodes, e=c_el)
 
 # ### Questions/Exercises
 # 1. Where are the point evaluations $l_3, l_4, l_5$ located in the reference triangle?
@@ -164,15 +161,18 @@ domain = dolfinx.mesh.create_mesh(MPI.COMM_SELF, connectivity, nodes, c_el)
 
 # Press the following dropdown to reveal the solution to exercise 3.
 
+
 # + tags=["hide-input"]
-def compute_physical_point(points,  X, degree: int = 2):
+def compute_physical_point(points, X, degree: int = 2):
     """
     Map coordinates `X` in reference element to triangle defined by `p0`, `p1` and `p2`
     """
     el = basix.ufl.element("Lagrange", "triangle", degree)
     basis_values = el.tabulate(0, X)
     assert points.shape[0] == basis_values.shape[2], "Nodes not matching finite element basis functions"
-    return (basis_values[0] @ points)
+    return basis_values[0] @ points
+
+
 # -
 
 # Expand the next dropdown to see how to plot the nodes on the reference and physical cell
@@ -180,18 +180,13 @@ def compute_physical_point(points,  X, degree: int = 2):
 # + tags=["hide-input"]
 # Create equispaced points on the reference triangle
 theta = 2 * np.pi
-reference_points = basix.create_lattice(basix.CellType.triangle, 9,
-                                        basix.LatticeType.equispaced, exterior=True)
+reference_points = basix.create_lattice(basix.CellType.triangle, 9, basix.LatticeType.equispaced, exterior=True)
 # Compute push forward
 x = compute_physical_point(nodes, reference_points, degree=2)
 
 # Create a unique colors for each node
 phi = np.linspace(0, theta, reference_points.shape[0])
-rgb_cycle = (np.stack((np.cos(phi),
-                       np.cos(phi-theta/4),
-                       np.cos(phi+theta/4)
-                      )).T
-             + 1)*0.5
+rgb_cycle = (np.stack((np.cos(phi), np.cos(phi - theta / 4), np.cos(phi + theta / 4))).T + 1) * 0.5
 
 # Create a 1x2 plot
 fig, (ax_ref, ax) = plt.subplots(1, 2, figsize=(10, 5))
@@ -199,18 +194,18 @@ ax_ref.set_title("Reference cell")
 
 # Plot reference points
 reference_vertices = basix.cell.geometry(basix.CellType.triangle)
-ref_triangle= plt.Polygon(reference_vertices, color="blue", alpha=0.2)
+ref_triangle = plt.Polygon(reference_vertices, color="blue", alpha=0.2)
 ax_ref.add_patch(ref_triangle)
-ax_ref.scatter(reference_points[:,0], reference_points[:,1], c=rgb_cycle)
+ax_ref.scatter(reference_points[:, 0], reference_points[:, 1], c=rgb_cycle)
 
 # Plot physical points
-triangle = plt.Polygon(nodes[[0,1,2]], color="blue", alpha=0.2)
+triangle = plt.Polygon(nodes[[0, 1, 2]], color="blue", alpha=0.2)
 
 # Plot all nodes
 ax.set_title("Physical cell")
-ax.scatter(nodes[:,0], nodes[:, 1], color="black", marker="s")
+ax.scatter(nodes[:, 0], nodes[:, 1], color="black", marker="s")
 ax.add_patch(triangle)
-ax.scatter(x[:,0], x[:,1], c=rgb_cycle);
+ax.scatter(x[:, 0], x[:, 1], c=rgb_cycle)
 # -
 
 # We use the convenience function from above to visualize the mesh with Pyvista

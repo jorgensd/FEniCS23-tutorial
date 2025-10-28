@@ -39,7 +39,8 @@ def inspect_mesh(shared_facet: bool = False):
 inspect_mesh()
 
 # We observe that we have 18 cells in the mesh, that are connected to the 18 vertices.
-# All indices start from 0, and can be mapped to its global owner by calling `domain.topology.index_map(tdim).local_to_global([idx])`
+# All indices start from 0, and can be mapped to its global owner by calling
+# {py:obj}`domain.topology.index_map(tdim).local_to_global([idx])<dolfinx.common.IndexMap.local_to_global>`.
 
 # ## Parallel execution
 # We use IPython-Parallel for running DOLFINx on multiple processes inside our script.

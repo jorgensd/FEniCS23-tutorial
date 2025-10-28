@@ -6,7 +6,7 @@
 # compiling and linking the code can take time.
 # We start by setting up a simple unit square and a first order Lagrange space.
 
-# + 
+# +
 from mpi4py import MPI
 
 import numpy as np
@@ -38,11 +38,12 @@ V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 # In this equation, there are several time dependent and spatially varying coefficients.
 # With a naive implementation of this code in DOLFINx, one would define the variational formulation **inside** the
 # temporal loop, and **re-compile** the variational form for each time step.
-# In DOLFINx, a form is compiled whenever one calls `dolfinx.fem.form`, or initialize a `dolfinx.fem.petsc.LinearProblem`.
+# In DOLFINx, a form is compiled whenever one calls {py:class}`dolfinx.fem.form`,
+# or initialize a {py:class}`dolfinx.fem.petsc.LinearProblem`.
 
 # ## Time-dependent constants
-# To be able to use adaptive time stepping, we define `dt` as a `dolfinx.fem.Constant`, such that we can re-assign values to the
-# constant without having to re-compile the code.
+# To be able to use adaptive time stepping, we define `dt` as a {py:class}`dolfinx.fem.Constant`,
+# such that we can re-assign values to the constant without having to re-compile the code.
 
 dt = dolfinx.fem.Constant(mesh, 0.01)
 
@@ -52,6 +53,7 @@ dt.value = 0.005
 
 
 # Similarly, we can define the diffusive coefficient `k` such as
+
 
 # +
 def k_func(t):
@@ -70,7 +72,8 @@ t.value = 0
 # -
 
 # ## Conditional values
-# Next, we define the spatial and temporal source term using a `ufl.conditional`
+# Next, we define the spatial and temporal source term using a
+# {py:func}`ufl.conditional`
 # We start by defining the spatially varying parameters of the mesh
 
 x, y = ufl.SpatialCoordinate(mesh)
@@ -108,7 +111,8 @@ F = dudt * v * dx + k * ufl.inner(ufl.grad(u), ufl.grad(v)) * dx - f * v * dx
 a, L = ufl.system(F)
 
 # ## Explicit code generation
-# We generate and compile the C code for these expressions using `dolfinx.fem.form`
+# We generate and compile the C code for these expressions using
+# {py:func}`dolfinx.fem.form`
 
 # +
 a_compiled = dolfinx.fem.form(a)
@@ -117,6 +121,7 @@ L_compiled = dolfinx.fem.form(L)
 
 # ## Initial conditions
 # We generate the initial condition by using lambda expressions
+
 
 # +
 def u_init(x, sigma=0.1, mu=0.3):
@@ -147,11 +152,14 @@ petsc_options = {
     "pc_type": "lu",
     "pc_factor_mat_solver_type": "mumps",
 }
-problem = dolfinx.fem.petsc.LinearProblem(a_compiled, L_compiled, u=uh, bcs=[], petsc_options=petsc_options)
+problem = dolfinx.fem.petsc.LinearProblem(
+    a_compiled, L_compiled, u=uh, bcs=[], petsc_options=petsc_options, petsc_options_prefix="heat_"
+)
 
 # ## The temporal loop
 
-# For each temporal step, we update the time variable and call the `solve` command that re-assemble the system
+# For each temporal step, we update the time variable and call the
+# {py:meth}`solve<dolfinx.fem.petsc.LinearProblem.solve>` command that re-assemble the system
 
 T = 1
 while t.value < T:
