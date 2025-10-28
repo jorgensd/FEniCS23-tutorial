@@ -3,13 +3,13 @@ requires = ["setuptools>=77.0.3", "wheel", "pip>=22.3"]
 
 [project]
 name = "FEniCS_Sorbonne"
-version = "0.10.0"
+version = "0.11.0.dev0"
 description = "Tutorial for FENiCS at Sorbonne University"
 authors = [{ name = "Jørgen S. Dokken", email = "dokken@simula.no" }]
 license = "MIT"
 readme = "README.md"
 dependencies = [
-    "fenics-dolfinx>=0.10.0,<0.11",
+    "fenics-dolfinx>=0.10.0",
     "pygraphviz",
     "pyvista[all]>=0.45.0",
     "ipyparallel",
