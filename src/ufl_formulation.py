@@ -41,9 +41,10 @@
 
 import basix.ufl
 import numpy as np
-reference_points = basix.create_lattice(basix.CellType.triangle, 13,
-                                        basix.LatticeType.gll, exterior=False,
-                                        method=basix.LatticeSimplexMethod.warp)
+
+reference_points = basix.create_lattice(
+    basix.CellType.triangle, 13, basix.LatticeType.gll, exterior=False, method=basix.LatticeSimplexMethod.warp
+)
 
 # Next, we realize that we can use the first order Lagrange space, to represent the mapping from the
 # reference element to any physical element:
@@ -53,13 +54,15 @@ reference_points = basix.create_lattice(basix.CellType.triangle, 13,
 # $$x = F_j(X)= \sum_{i=0}^3 p_i \phi_i(X).$$
 #
 
+
 def compute_physical_point(p0, p1, p2, X):
     """
     Map coordinates `X` in reference element to triangle defined by `p0`, `p1` and `p2`
     """
     el = basix.ufl.element("Lagrange", "triangle", 1)
     basis_values = el.tabulate(0, X)
-    return (basis_values[0] @ np.vstack([p0, p1, p2]))
+    return basis_values[0] @ np.vstack([p0, p1, p2])
+
 
 # We can now experiment with this code
 
@@ -71,25 +74,24 @@ x = compute_physical_point(p0, p1, p2, reference_points)
 # We use matplotlib to visualize the reference points and the physical points
 
 import matplotlib.pyplot as plt
+
 theta = 2 * np.pi
 phi = np.linspace(0, theta, reference_points.shape[0])
-rgb_cycle = (np.stack((np.cos(phi),
-                       np.cos(phi-theta/4),
-                       np.cos(phi+theta/4)
-                      )).T
-             + 1)*0.5 # Create a unique colors for each node
+rgb_cycle = (
+    np.stack((np.cos(phi), np.cos(phi - theta / 4), np.cos(phi + theta / 4))).T + 1
+) * 0.5  # Create a unique colors for each node
 
 fig, (ax_ref, ax) = plt.subplots(2, 1)
 # Plot reference points
 reference_vertices = basix.cell.geometry(basix.CellType.triangle)
-ref_triangle= plt.Polygon(reference_vertices, color="blue", alpha=0.2)
+ref_triangle = plt.Polygon(reference_vertices, color="blue", alpha=0.2)
 ax_ref.add_patch(ref_triangle)
-ax_ref.scatter(reference_points[:,0], reference_points[:,1], c=rgb_cycle)
+ax_ref.scatter(reference_points[:, 0], reference_points[:, 1], c=rgb_cycle)
 # Plot physical points
 vertices = np.vstack([p0, p1, p2])
 triangle = plt.Polygon(vertices, color="blue", alpha=0.2)
 ax.add_patch(triangle)
-ax.scatter(x[:,0], x[:,1], c=rgb_cycle)
+ax.scatter(x[:, 0], x[:, 1], c=rgb_cycle)
 
 # ## Exercises:
 #
@@ -101,7 +103,8 @@ ax.scatter(x[:,0], x[:,1], c=rgb_cycle)
 # As seen above, we can use the Lagrange element basis functions to represent the mapping from the
 # reference element to the physical element (and its inverse).
 
-# In the unified form language we make a symbolic representation of the computational domain, using `ufl.Mesh`.
+# In the unified form language we make a symbolic representation of the computational domain,
+# using {py:class}`ufl.Mesh`.
 
 import basix.ufl
 import ufl
@@ -170,14 +173,14 @@ g = ufl.Coefficient(G)
 # $$ \int_\Omega u\cdot v~\mathrm{d}x = \int_\Omega \frac{f}{g}\cdot v~\mathrm{d}x.$$
 #
 # This is also equivalent to minimizing the following functional
-# 
+#
 # $$ \min_{u\in V} J(u) = \frac{1}{2}\int_\Omega \left(u-\frac{f}{g}\right)\cdot\left(u-\frac{f}{g}\right)~\mathrm{d}x.$$
 #
 # We find the minimum by computing $\frac{\mathrm{d}{J}}{\mathrm{d}u}[\delta u]=0$.
 #
 # $$ \frac{\mathrm{d}{J}}{\mathrm{d}u}[\delta u] = \int_\Omega \left(u - \frac{f}{g}\right)\cdot \delta u~\mathrm{d}x=0.$$
 #
-#```
+# ```
 #
 #
 # We obtain them in the standard way, by multiplying by a test function
@@ -193,9 +196,9 @@ L = ufl.inner(f / g, v) * ufl.dx
 forms = [a, L]
 
 # So far, so good?
-# As opposed to most demos/tutorials on FEniCSx, note that we have not imported `dolfinx`
-# or made a reference to the actual computational domain we want to solve the problem on or what `f` or `g` is,
-# except for the choice of function spaces.
+# As opposed to most demos/tutorials on FEniCSx, note that we have not imported
+# {py:mod}`dolfinx` sor made a reference to the actual computational domain we want
+# to solve the problem on or what `f` or `g` is, except for the choice of function spaces.
 
 # ## Further analysis of the variational form
 # We next use the map $F_K:K_{ref}\mapsto K$ to map the integrals over each cell in the domain back to the reference cell.
@@ -267,6 +270,7 @@ f = ufl.Coefficient(Vh)
 mu = ufl.Constant(domain)
 lmbda = ufl.Constant(domain)
 
+
 def epsilon(u):
     return ufl.sym(ufl.grad(u))
 
@@ -282,24 +286,28 @@ indices = ufl.indices(4)
 # Secondly we define the product of two delta functions $\delta_{ij}\delta_{kl}$
 # which results in a fourth order tensor.
 
+
 def delta_product(i, j, k, l):
     return ufl.as_tensor(Id[i, j] * Id[k, l], indices)
 
+
 # Finally we define the Stiffness tensor
-i,j,k,l = indices
-C = lmbda * delta_product(i,j,k,l) + mu*(delta_product(i,k,j,l) + delta_product(i,l,k,j))
+i, j, k, l = indices
+C = lmbda * delta_product(i, j, k, l) + mu * (delta_product(i, k, j, l) + delta_product(i, l, k, j))
 
 # and the functional
 
-Jh = 0.5*(C[i,j,k,l] * epsilon(uh)[k,l]) * epsilon(uh)[i,j] * ufl.dx - ufl.inner(f, uh) * ufl.dx
+Jh = 0.5 * (C[i, j, k, l] * epsilon(uh)[k, l]) * epsilon(uh)[i, j] * ufl.dx - ufl.inner(f, uh) * ufl.dx
 
 # This syntax is remarkably similar to how it is written on [paper](https://en.wikipedia.org/wiki/Elasticity_tensor).
 
 # ## Alternative formulation
 # Instead of writing out all the indices with Einstein notation, one could write the same equation as
 
+
 def sigma(u):
     return lmbda * ufl.nabla_div(u) * ufl.Identity(len(u)) + 2 * mu * epsilon(u)
+
 
 Jh = 0.5 * ufl.inner(sigma(uh), epsilon(uh)) * ufl.dx - ufl.inner(f, uh) * ufl.dx
 

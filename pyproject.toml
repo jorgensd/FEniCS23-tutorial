@@ -1,19 +1,20 @@
 [build-system]
-requires = ["setuptools>=64.4.0", "wheel", "pip>=22.3"]
+requires = ["setuptools>=77.0.3", "wheel", "pip>=22.3"]
 
 [project]
 name = "FEniCS_Sorbonne"
-version = "0.8.0"
+version = "0.10.0"
 description = "Tutorial for FENiCS at Sorbonne University"
 authors = [{ name = "Jørgen S. Dokken", email = "dokken@simula.no" }]
-license = { file = "LICENSE" }
+license = "MIT"
 readme = "README.md"
 dependencies = [
-    "fenics-dolfinx>=0.8.0",
+    "fenics-dolfinx>=0.10.0,<0.11",
     "pygraphviz",
-    "pyvista[all]>=0.43.0",
+    "pyvista[all]>=0.45.0",
     "ipyparallel",
     "tqdm",
+    "sphinx_codeautolink",
 ]
 
 [project.optional-dependencies]

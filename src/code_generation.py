@@ -52,8 +52,8 @@ os.system("ls ufl_formulation.*")
 # We can look at the assembly code for the local matrix. We start by inspecting the signature of the `tabulate_tensor`
 # function that computes the local element matrix
 
-os.system("head -344 ufl_formulation.c | tail +272")
+os.system("head -102 ufl_formulation.c | tail +29")
 
 # ## Optional Exercise
 # Study the computational graph for the bi-linear form, and the kernel for the assembly of this form below.
-# Do you understand each step? 
+# Do you understand each step?

@@ -83,6 +83,7 @@ boundary_facets = dolfinx.mesh.exterior_facet_indices(mesh.topology)
 # We pass in a Python function that takes in a `(3, num_points)` array, and returns an 1D array of booleans
 # indicating if the point satisfies the condition or not.
 
+
 # +
 def left_facets(x):
     return np.isclose(x[0], 0.0)
@@ -94,8 +95,7 @@ clamped_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, left_face
 # An equivalent way to find the facets is to use Python `lambda` functions, which are [anonymous functions](https://docs.python.org/3/glossary.html#term-lambda)
 # (they are not bound to a variable name). Here we find the facets on the right boundary, where $x = L$
 
-prescribed_facets = dolfinx.mesh.locate_entities_boundary(
-    mesh, tdim - 1, lambda x: np.isclose(x[0], L))
+prescribed_facets = dolfinx.mesh.locate_entities_boundary(mesh, tdim - 1, lambda x: np.isclose(x[0], L))
 
 # As all mesh entities are represented as integers, we can find the boundary facets by
 # remaining facets using numpy set operations
@@ -129,12 +129,14 @@ mu = E / (2.0 * (1.0 + nu))
 lmbda = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu))
 f = dolfinx.fem.Constant(mesh, (0.0, 0.0, 0.0))
 
+
 def epsilon(u):
     return ufl.sym(ufl.grad(u))
 
 
 def sigma(u):
     return 2.0 * mu * epsilon(u) + lmbda * ufl.tr(epsilon(u)) * ufl.Identity(len(u))
+
 
 ds = ufl.Measure("ds", domain=mesh, subdomain_data=facet_marker)
 u = ufl.TrialFunction(V)
@@ -149,13 +151,15 @@ L = ufl.inner(f, v) * ufl.dx + ufl.inner(T_0, v) * ds(3)
 #
 # ### Exercise
 # - How many degrees of freedom are associated with each facet in this case?
-# - How many degrees of freedom is in the closure of each facet (i.e. the set of all dofs associated) with a sub-entity
+# - How many degrees of freedom is in the closure of each facet
+#   (i.e. the set of all dofs associated) with a sub-entity
 #   of lower topological dimension that is part of the facet (i.e. a vertex or an edge).
 #
-# We can find these dofs by using `dolfinx.fem.locate_dofs_topological`.
-# This function takes in the function space we want to identify the dofs in, the entities we want to find the dofs for,
+# We can find these dofs by using {py:func}`dolfinx.fem.locate_dofs_topological`.
+# This function takes in the function space we want to identify the dofs in,
+# the entities we want to find the dofs for,
 # and the dimension of the entity.
-# We simply access the through the `facet_marker` object.
+# We simply access the through the {py:class}`facet_marker<dolfinx.mesh.MeshTags>` object.
 
 clamped_dofs = dolfinx.fem.locate_dofs_topological(V, facet_marker.dim, facet_marker.find(clamped))
 displaced_dofs = dolfinx.fem.locate_dofs_topological(V, facet_marker.dim, facet_marker.find(prescribed))
@@ -179,13 +183,15 @@ petsc_options = {
     "pc_type": "lu",
     "pc_factor_mat_solver_type": "mumps",
 }
-problem = dolfinx.fem.petsc.LinearProblem(a, L, bcs=bcs, petsc_options=petsc_options)
+problem = dolfinx.fem.petsc.LinearProblem(
+    a, L, bcs=bcs, petsc_options=petsc_options, petsc_options_prefix="elasticity_"
+)
 u = problem.solve()
 u.x.scatter_forward()
 
 # + tags=["hide-input"]
 import pyvista
-pyvista.start_xvfb(1.2)
+
 grid = dolfinx.plot.vtk_mesh(u.function_space)
 pyvista_grid = pyvista.UnstructuredGrid(*grid)
 values = u.x.array.reshape(-1, 3)
@@ -278,9 +284,10 @@ dolfinx.fem.petsc.set_bc(b, bcs)
 b.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
 
 # We can now solve the linear system.
-# However, we now have explicit an explicit PETSc matrix `A` and a vector `b`
-# Then, the most common approach is to create a `PETSc.KSP` object.
-# Press the following dropdown to see how you can define a PETSc KSP object.
+# However, we now have explicit an explicit PETSc matrix
+# {py:class}`A<petsc4py.PETSc.Mat>` and a vector {py:class}`b<petsc4py.PETSc.Vec>`.
+# Then, the most common approach is to create a {py:class}`PETSc.KSP<petsc4py.PETSc.KSP>` object.
+# Press the following dropdown to see how you can define a the krylov subspace solver with PETSc
 
 # + tags=["hide-input"]
 uh = dolfinx.fem.Function(V)
@@ -336,22 +343,22 @@ print(f"Matrix A is symmetric after bc application: {A.isSymmetric(1e-5)}")
 # \end{align}
 # We do this in DOLFINx with the following commands
 #
-# 1. `assemble_matrix` with Dirichlet conditions
+# 1. {py:func}`assemble_matrix<dolfinx.fem.petsc.assemble_matrix>` with Dirichlet conditions
 
 A_lifting = dolfinx.fem.petsc.assemble_matrix(a_compiled, bcs=bcs)
 A_lifting.assemble()
 
 # converts all columns and rows with a Dirichlet dofs to the identity row/column (during local assembly.
-# 2. `assemble_vector` without dirichletbc
+# 2. {py:func}`assemble_vector<dolfinx.fem.petsc.assemble_vector>` without {py:class}`dolfinx.fem.DirichletBC`
 
 b_lifting = dolfinx.fem.petsc.assemble_vector(L_compiled)
 
-# 3. `apply_lifting`, i.e subtract $A_{d,bc}g$ from the vector
+# 3. {py:func}`apply_lifting<dolfinx.fem.petsc.apply_lifting>`, i.e subtract $A_{d,bc}g$ from the vector
 
 dolfinx.fem.petsc.apply_lifting(b_lifting, [a_compiled], bcs=[bcs])
 b_lifting.ghostUpdate(addv=PETSc.InsertMode.ADD_VALUES, mode=PETSc.ScatterMode.REVERSE)
 
-# 4. `set_bc`, i.e set the degrees of freedom for known dofs
+# 4. {py:func}`set_bc<dolfinx.fem.petsc.set_bc>`, i.e set the degrees of freedom for known dofs
 
 dolfinx.fem.petsc.set_bc(b_lifting, bcs)
 b_lifting.ghostUpdate(addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD)
@@ -386,7 +393,7 @@ L_lifted = L - ufl.action(a, g)
 
 # What happens here?
 #
-# `ufl.action` reduces the bi-linear form to a linear form (and would reduce a linear form to a scalar)
+# {py:func}`ufl.action` reduces the bi-linear form to a linear form (and would reduce a linear form to a scalar)
 #  by replacing the trial function with the function $g$, that is only non-zero at the Dirichlet condition
 
 # The new assembly of the linear and bi-linear form would be

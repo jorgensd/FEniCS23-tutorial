@@ -11,7 +11,7 @@
 # $$
 #
 # where $\alpha$ is a pre-defined constant.
-# We will use `ufl.conditional` as explained in the [the previous section](./form_compilation).
+# We will use {py:func}`ufl.conditional` as explained in the [the previous section](./form_compilation).
 
 # +
 from mpi4py import MPI
@@ -19,9 +19,12 @@ from petsc4py import PETSc
 import dolfinx.fem.petsc
 import ufl
 
+
 def h(alpha, mesh: dolfinx.mesh.Mesh):
     x = ufl.SpatialCoordinate(mesh)
     return ufl.conditional(ufl.lt(x[0], alpha), ufl.cos(ufl.pi * x[0]), -ufl.sin(x[0]))
+
+
 # -
 
 # ## Reusable projector
@@ -35,6 +38,7 @@ from typing import Optional
 
 import numpy as np
 import pyvista
+
 
 class Projector:
     """
@@ -141,6 +145,8 @@ class Projector:
     def __del__(self):
         self._A.destroy()
         self._ksp.destroy()
+
+
 # -
 
 # With this class, we can send in any expression written in {term}`UFL` to the projector,
@@ -175,6 +181,7 @@ class Projector:
 # ````
 
 from functools import partial
+
 h_nonaligned = partial(h, np.pi / 10)
 
 # Let us now try to use the re-usable projector to approximate this function
@@ -185,7 +192,7 @@ Nx = 20
 mesh = dolfinx.mesh.create_unit_interval(MPI.COMM_WORLD, Nx)
 V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
 
-petsc_options={"ksp_type": "preonly", "pc_type": "lu"}
+petsc_options = {"ksp_type": "preonly", "pc_type": "lu"}
 V_projector = Projector(V, petsc_options=petsc_options)
 uh = V_projector.project(h_nonaligned(V.mesh))
 # -
@@ -198,6 +205,7 @@ wh = W_projector.project(h_nonaligned(W.mesh))
 
 # We compare the two solutions side by side
 
+
 # + tags=["hide-input"]
 def warp_1D(u: dolfinx.fem.Function, factor=1):
     """Convenience function to warp a 1D function for visualization in pyvista"""
@@ -206,8 +214,11 @@ def warp_1D(u: dolfinx.fem.Function, factor=1):
     return u_grid.warp_by_scalar(factor=factor)
 
 
-def create_side_by_side_plot(u_continuous:dolfinx.fem.Function, u_dg:dolfinx.fem.Function, ):
-    def num_glob_cells(u:dolfinx.fem.Function)->int:
+def create_side_by_side_plot(
+    u_continuous: dolfinx.fem.Function,
+    u_dg: dolfinx.fem.Function,
+):
+    def num_glob_cells(u: dolfinx.fem.Function) -> int:
         mesh = u.function_space.mesh
         cell_map = mesh.topology.index_map(mesh.topology.dim)
         return cell_map.size_global
@@ -217,12 +228,12 @@ def create_side_by_side_plot(u_continuous:dolfinx.fem.Function, u_dg:dolfinx.fem
 
     pyvista.set_jupyter_backend("static")
     plotter = pyvista.Plotter(shape=(1, 2))
-    plotter.subplot(0,0)
+    plotter.subplot(0, 0)
     plotter.add_text(f"Continuous Lagrange N={num_glob_cells(u_continuous)}")
     plotter.add_mesh(pyvista_continuous, style="wireframe", line_width=3)
     plotter.show_axes()
     plotter.view_xz()
-    plotter.subplot(0,1)
+    plotter.subplot(0, 1)
     plotter.add_text(f"Discontinuous Lagrange N={num_glob_cells(u_dg)}")
     plotter.add_mesh(pyvista_dg, style="wireframe", line_width=3)
     plotter.show_axes()
@@ -232,7 +243,6 @@ def create_side_by_side_plot(u_continuous:dolfinx.fem.Function, u_dg:dolfinx.fem
     pyvista.set_jupyter_backend("html")
 
 
-pyvista.start_xvfb(1.0)
 create_side_by_side_plot(uh, wh)
 # -
 
@@ -274,9 +284,10 @@ for N in [20, 40, 80]:
 
 # ## Interpolation of functions and UFL-expressions
 
-# Above we have defined a function that is dependent on the spatial coordinates of `ufl`, and it is a **purely symbolic expression**.
+# Above we have defined a function that is dependent on the spatial coordinates of
+# {py:mod}`ufl`, and it is a **purely symbolic expression**.
 # If we want to evaluate this expression, either at a given point or interpolate it into a function space, we need to compile code
-# similar to the code generated with `dolfinx.fem.form` or calling FFCx.
+# similar to the code generated with {py:func}`dolfinx.fem.form` or calling FFCx.
 # The main difference is that for an expression, there is **no summation over quadrature**.
 # To perform this compilation for a given point in the reference cell, we call
 
@@ -302,13 +313,13 @@ u = dolfinx.fem.Function(V)
 Q = dolfinx.fem.functionspace(mesh, ("DG", 1))
 
 dudx = ufl.grad(u)[0]
-compile_dudx = dolfinx.fem.Expression(dudx, Q.element.interpolation_points())
+compile_dudx = dolfinx.fem.Expression(dudx, Q.element.interpolation_points)
 # -
 
 # We populate `u` with some data on some part of the domain
 
-left_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0]>=0.3+1e-14)
-u.interpolate(lambda x: x[0]**2, cells=left_cells)
+left_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0] >= 0.3 + 1e-14)
+u.interpolate(lambda x: x[0] ** 2, cells0=left_cells)
 
 # We can then interpolate `dudx` into `Q` with
 

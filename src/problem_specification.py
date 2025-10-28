@@ -9,10 +9,11 @@
 
 # # Creating a simple mesh in {term}`DOLFINx`
 # As you might have seen in other FEniCSx tutorials, there are some "built-in" meshes in DOLFINx.
-# In this tutorial, we will use a unit square, consisting of triangular elements, where we have 10
-# elements in each direction.
+# In this tutorial, we will use a unit square, consisting of triangular elements,
+# where we have 10 elements in each direction.
 # To create a mesh, we need to decide on what {term}`MPI` communicator we want to use.
-# For all the examples in this tutorial, we will use the communicator `MPI.COMM_WORLD`.
+# For all the examples in this tutorial, we will use the communicator
+# {py:obj}`MPI.COMM_WORLD<mpi4py.MPI.COMM_WORLD>`.
 
 from mpi4py import MPI
 
@@ -36,8 +37,12 @@ v = ufl.TestFunction(V)
 a = u * v * ufl.dx
 
 # ```{note}
-# Compared to the previous sections, we have now used `dolfinx.fem.Function`, instead of `ufl.Coefficient` to defined `f` and `g`.
-# This is because a `ufl.Coefficient` does not hold any data. The `dolfinx.fem.Function` is sub-classed from `ufl.Coefficient`
+# Compared to the previous sections, we have now used
+# {py:class}`dolfinx.fem.Function`, instead of
+# {py:class}`ufl.Coefficient` to defined `f` and `g`.
+# This is because a {py:class}`ufl.Coefficient` does not hold any data.
+# The {py:class}`dolfinx.fem.Function` is sub-classed from
+# {py:class}`ufl.Coefficient`
 # and holds data for the degrees of freedom.
 # ````
 
@@ -61,12 +66,12 @@ L = f / g * v * ufl.dx
 # which can operate on the entire array at once.
 # ```
 
-g.interpolate(lambda x: 0.8 + np.sin(np.pi*x[1]))
+g.interpolate(lambda x: 0.8 + np.sin(np.pi * x[1]))
 
 # As `f` is in a discontinuous function space, we will create a piecewise constant function over parts of the domain.
 # We do this by first locating what cells satisfies `x<=0.5` (i.e. all vertices of the cell satisfies this condition).
 
-left_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0] <=0.5+1e-14)
+left_cells = dolfinx.mesh.locate_entities(mesh, mesh.topology.dim, lambda x: x[0] <= 0.5 + 1e-14)
 
 # Next we populate all degrees of freedom by the function we want in the rest of the domain, $f(x,y) = x$.
 
@@ -74,23 +79,24 @@ f.interpolate(lambda x: x[0])
 
 # And then we overwrite the values in the left cells with the function $f(x,y) = 1$.
 
-f.interpolate(lambda x: np.full(x.shape[1], 1, dtype=dolfinx.default_scalar_type), cells=left_cells)
+f.interpolate(lambda x: np.full(x.shape[1], 1, dtype=dolfinx.default_scalar_type), cells0=left_cells)
 
-# As we are only working on a sub-set of cells, we call `scatter_forward` to ensure that all processes on a distributed
-# system gets the correct values.
+# As we are only working on a sub-set of cells,
+# we call {py:meth}`scatter_forward<dolfinx.la.Vector.scatter_forward>`
+# to ensure that all processes on a distributed system gets the correct values.
 
 f.x.scatter_forward()
 
-# Next we need to solve the linear problem. We do this using {term}`PETSc`, which is an interface to many linear algebra libraries,
+# Next we need to solve the linear problem. We do this using {term}`PETSc`,
+# which is an interface to many linear algebra libraries,
 # as well as providing it's own set of solvers.
-# In DOLFINx, we provide a simple interface to PETSc with the `dolfinx.fem.petsc.LinearProblem` class.
+# In DOLFINx, we provide a simple interface to {py:mod}`PETSc<petsc4py.PETSc>`
+# with the {py:class}`dolfinx.fem.petsc.LinearProblem` class.
 # If we want to give PETSc some options, such as what direct solver to use, we can do this with a dictionary.
 # In the following example, we will use a direct solver, and specifically the {term}`MUMPS` solver.
 
-petsc_options = petsc_options={"ksp_type": "preonly",
-                                "pc_type": "lu",
-                                "pc_factor_mat_solver_type": "mumps"}
-problem = dolfinx.fem.petsc.LinearProblem(a, L, petsc_options=petsc_options)
+petsc_options = {"ksp_type": "preonly", "pc_type": "lu", "pc_factor_mat_solver_type": "mumps"}
+problem = dolfinx.fem.petsc.LinearProblem(a, L, petsc_options=petsc_options, petsc_options_prefix="projection_")
 
 # Now we can solve the problem and plot the solution.
 
@@ -98,7 +104,6 @@ uh = problem.solve()
 
 
 def plot_scalar_function(u: dolfinx.fem.Function):
-    pyvista.start_xvfb(1.0)
     u_grid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(u.function_space))
     u_grid.point_data["u"] = u.x.array
     linear_grid = pyvista.UnstructuredGrid(*dolfinx.plot.vtk_mesh(u.function_space.mesh))
