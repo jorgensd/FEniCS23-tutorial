@@ -28,7 +28,7 @@ jobs:
     container: ghcr.io/fenics/dolfinx/dolfinx:stable
     steps:
       # This action sets the current path to the root of your github repo
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install graphviz and pyvista deps
         run: |
           apt-get update 
